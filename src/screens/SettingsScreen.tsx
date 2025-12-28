@@ -363,7 +363,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                             marginBottom: '8px',
                                         }}
                                     >
-                                        Director's Module Job Title
+                                        Director's Module Job Title (a patient-assignable role)
                                     </label>
                                     <TextInput
                                         id="director-module-role-name"

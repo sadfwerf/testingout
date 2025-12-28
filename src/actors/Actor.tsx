@@ -39,7 +39,7 @@ const ART_PROMPT: {[key in ArtStyle]: string} = {
     'original': 'A professional upper-body portrait of this character',
     'anime': 'Render this character in a classic visual novel, anime style with vibrant colors, expressive features, inks, and cel shading',
     'chibi': 'Render this character in a chibi style with exaggerated proportions, large eyes, and a cute, playful appearance; use bright colors and a bold white outline',
-    'comic': 'Render this character in a comic book style with dynamic poses, bold lines, and vibrant colors; use halftone shading and dramatic lighting',
+    'comic': 'Render this character in a comicbook style with dynamic poses, bold lines, and vibrant colors. This is a 90s era comicbook, with halftone shading, dramatic lighting, and intense inking',
     'pixel art': 'Render this character in a half-resolution pixel art style, with a limited color palette, dithered shading, and vibrant retro aesthetic',
     'hyper-realistic': 'Render this character in a hyper-realistic style with intricate details, elaborate textures, and dramatic lighting to create a striking and immersive illustration',
     'realistic': 'Picture this character in a photographic style with natural proportions, detailed textures, and subtle lighting to create a believable and lifelike image',
@@ -521,8 +521,8 @@ export async function generateActorDecor(actor: Actor, module: Module, stage: St
     // Generate a decor image based on the module's description and the actor's description
     stage.imageGenerationPromises[`actor/decor/${actor.id}/${module.type}`] = stage.makeImageFromImage({
         image: module.getAttribute('baseImageUrl') || '',
-        prompt: `This is a sci-fi ${module.getAttribute('name')}: ${module.getAttribute('imagePrompt') || ''}.\n` +
-                `Redecorate the space with furnishings, decorations, or details to suit or exemplify this style: ${actor.style}.\n` +
+        prompt: `This is a sci-fi room (${module.getAttribute('name')}) aboard a space station.\n` +
+                `Redecorate this space with furnishings, decorations, or details to suit or exemplify their personal aesthetic: ${actor.style}.\n` +
                 `Remove any characters from the scene, and give the result a visual novel look.`,
         remove_background: false,
         transfer_type: 'edit'

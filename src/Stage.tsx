@@ -41,7 +41,7 @@ export type SaveType = {
     timeline?: Timeline;
     currentSkit?: SkitData;
     stationStats?: {[key in StationStat]: number};
-    timestamp?: number; // Unix timestamp (milliseconds) when save was last updated
+    timestamp?: number; // Time of last save
     disableTextToSpeech?: boolean;
     disableEmotionImages?: boolean;
     characterArtStyle?: ArtStyle;
@@ -451,14 +451,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             this.getSave().actors[this.getSave().aide.actorId || ''].origin = 'aide';
         }
 
-        if (this.betaMode && !this.getSave().directorModule) {
-            this.getSave().directorModule = {...this.freshSave.directorModule};
-        }
-
-        if (this.betaMode && !this.getSave().directorModule.module) {
-            // Register placeholder:
-            registerModule('director module',
-                {
+        // Director module handling in beta:
+        if (this.betaMode) {
+            // Placeholder module:
+            const placeholderModule = {
                     name: this.getSave().directorModule.name,
                     skitPrompt: 'Crew quarters are personal living spaces for station inhabitants. Scenes here often involve personal interactions:  revelations, troubles, interests, or relaxation.',
                     imagePrompt: 'A sci-fi living quarters with a bed, personal storage, and ambient lighting, reflecting the occupant\'s personality.',
@@ -468,41 +464,47 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     roleDescription: '',
                     cost: {
                         Wealth: 3,
-                    }
-                },
-                (module: Module, stage: Stage, setScreenType: (type: ScreenType) => void) => {
-                    stage.setSkit({
-                        type: SkitType.DIRECTOR_MODULE,
-                        moduleId: module.id,
-                        script: [],
-                        generating: true,
-                        context: {},
-                    });
-                    setScreenType(ScreenType.SKIT);
-                }
-            );
-
-            // Kick off director module generation
-            generateModule(this.getSave().directorModule.name, this, 
-                `This is a module designed specifically around the Director, ${this.getSave().player.name}, and their needs or tastes.\n` +
-                `About the Director, ${this.getSave().player.name}:\n${this.getSave().player.description}`,
-                this.getSave().directorModule.roleName).then(module => {
-                    if (module) {
-                        this.getSave().directorModule.module = module;
-                        registerModule('director module', module,
-                            (module: Module, stage: Stage, setScreenType: (type: ScreenType) => void) => {
-                                stage.setSkit({
-                                    type: SkitType.DIRECTOR_MODULE,
-                                    moduleId: module.id,
-                                    script: [],
-                                    generating: true,
-                                    context: {},
-                                });
-                                setScreenType(ScreenType.SKIT);
+                    },
+                    action: 
+                        (module: Module, stage: Stage, setScreenType: (type: ScreenType) => void) => {
+                            stage.setSkit({
+                                type: SkitType.DIRECTOR_MODULE,
+                                moduleId: module.id,
+                                script: [],
+                                generating: true,
+                                context: {},
                             });
-                        this.saveGame();
-                    }
-            });
+                            setScreenType(ScreenType.SKIT);
+                        }
+                };
+            // Create default director module if missing.
+            if (!this.getSave().directorModule) {
+                this.getSave().directorModule = { ...this.freshSave.directorModule };
+            }
+
+            // No generated module; generate it now.
+            if (!this.getSave().directorModule.module) {
+                // Register placeholder:
+                registerModule('director module',
+                    placeholderModule
+                );
+
+                // Kick off director module generation
+                generateModule(this.getSave().directorModule.name, this, 
+                    `This is a module designed specifically around the Director, ${this.getSave().player.name}, and their needs or tastes.\n` +
+                    `About the Director, ${this.getSave().player.name}:\n${this.getSave().player.description}`,
+                    this.getSave().directorModule.roleName).then(module => {
+                        if (module) {
+                            this.getSave().directorModule.module = module;
+                            registerModule('director module', module, placeholderModule.action);
+                            this.saveGame();
+                        }
+                });
+            } else {
+                // Register existing director module
+                registerModule('director module', this.getSave().directorModule.module || placeholderModule, placeholderModule.action);
+            }
+
         }
 
         if (!this.getSave().characterArtStyle) {
