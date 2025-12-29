@@ -1,6 +1,6 @@
 import Actor, { getStatDescription, findBestNameMatch, Stat, namesMatch } from "./actors/Actor";
 import { Emotion, EMOTION_MAPPING } from "./actors/Emotion";
-import { getStatRating, STATION_STAT_PROMPTS, StationStat } from "./Module";
+import { getStatRating, MODULE_TEMPLATES, STATION_STAT_PROMPTS, StationStat } from "./Module";
 import { Stage } from "./Stage";
 
 export enum SkitType {
@@ -69,11 +69,42 @@ export function generateSkitTypePrompt(skit: SkitData, stage: Stage, continuing:
                     `Potentially explore ${actor.name}'s thoughts, feelings, or troubles in this intimate setting.` :
                 `Continue this scene with ${actor.name}, potentially exploring their thoughts, feelings, or troubles in this intimate setting.`;
         case SkitType.RANDOM_ENCOUNTER:
+            // Create a random plot suggestion for the encounter; choose a random present character as central
+            const presentCharacters = Object.values(stage.getSave().actors).filter(a => {a.locationId === skit.moduleId && !a.factionId});
+            const centralCharacter = presentCharacters.length > 0 ? presentCharacters[Math.floor(Math.random() * presentCharacters.length)] : null;
+            const offStationCharacters = Object.values(stage.getSave().actors).filter(a => a.isOffSite(stage.getSave()) && !a.factionId);
+            const offStationCharacter = offStationCharacters.length > 0 ? offStationCharacters[Math.floor(Math.random() * offStationCharacters.length)] : null;
+            const plotSuggestions = [
+                // If off-station character has been gone a couple days, they could return (perhaps unexpectedly)
+                (offStationCharacter ? `${offStationCharacter.name}, who has been away on assignment, might be scheduled to return now (or perhaps is returning unexpectedly early). This scene may feature discussion about their return or depict the actual moment of return.` : null),
+                // If it's been a few days since 'birth' and this character has no role nd there are muliple open roles, this character may express an interestin in an unfilledd position:
+                (centralCharacter && (stage.getSave().layout.getModulesWhere(module => module.ownerId === centralCharacter.id && module.type !== 'quarters').length === 0) && (stage.getSave().day - (stage.getSave().timeline?.find(event => event.skit?.actorId === centralCharacter.id && event.skit?.type === SkitType.INTRO_CHARACTER)?.day || stage.getSave().day) >= 3) ?
+                    `Having been aboard the PARC for a few days now, ${centralCharacter.name} may express an interest in taking on one of the unoccupied module roles aboard the station; consider whether any of the current options make sense: ${stage.getSave().layout.getModulesWhere(module => module.type !== 'quarters' && !module.ownerId).map(module => `${module.getAttribute('role')} (${module.getAttribute('name')})`).join(', ')}. ` : null),
+                // The character could express an interest in an unowned module (if there are some unowned modules)
+                (centralCharacter && Object.keys(MODULE_TEMPLATES).some(moduleType => stage.getSave().layout.getModulesWhere(module => module.type === moduleType).length === 0) ?
+                    `${centralCharacter.name} may express an interest in adding a module that the PARC is currently missing; consider whether any of these options make sense: ${Object.keys(MODULE_TEMPLATES).filter(moduleType => stage.getSave().layout.getModulesWhere(module => module.type === moduleType).length === 0).map(moduleType => `${MODULE_TEMPLATES[moduleType].name}`).join(', ')}. ` : null),
+                // If some faction is active and friendly, maybe talk about them:
+                (Object.values(stage.getSave().factions).some(faction => faction.active && faction.reputation >= 3) ?
+                    `Discuss the PARC's current relationships with ${Object.values(stage.getSave().factions).find(faction => faction.active && faction.reputation >= 3)?.name || 'an active and friendly faction'}, and any potential offers or missions that might be available to patients aboard the station.` : null),
+                // If some station stat is high, maybe have an event that reflects that while pushing it downward:
+                (Object.values(StationStat).some(stat => (stage.getSave().stationStats?.[stat] || 3) >= 7) ?
+                    `An event occurs that reflects the PARC's high ${Object.values(StationStat).find(stat => (stage.getSave().stationStats?.[stat] || 3) >= 7) || 'Systems'} stat, but also threatens to lower it.` :  '') +
+                // If some station stat is low, maybe have an event that reflects that while pushing it up:
+                (Object.values(StationStat).some(stat => (stage.getSave().stationStats?.[stat] || 3) <= 3) ?
+                    `An event occurs that reflects the PARC's low ${Object.values(StationStat).find(stat => (stage.getSave().stationStats?.[stat] || 3) <= 3) || 'Morale'} stat, but also offers an opportunity to raise it.` :  ''),
+                // If there is another patient on the PARC maybe focus on centralCharacter's relationhip or thoughts on them:
+                (centralCharacter && Object.values(stage.getSave().actors).filter(actor => actor.origin === 'patient').length > 1 ?
+                    `Explore ${centralCharacter.name}'s thoughts or feelings about other patients aboard the PARC, such as ${Object.values(stage.getSave().actors).filter(actor => actor.origin === 'patient' && actor.id !== centralCharacter.id).map(actor => actor.name)[0]}.` : null), 
+                // Generic suggestion:
+                `Explore the setting and what might arise from this unexpected meeting.`
+            ].filter(s => s !== null);
+            const randomSuggestion = plotSuggestions.length > 0 ? plotSuggestions[Math.floor(Math.random() * plotSuggestions.length)] : 'Explore the setting and what might arise from this unexpected meeting.';
+
             return !continuing ?
                 `This scene depicts a chance encounter in the ${module?.getAttribute('name') || 'unknown'} module${module?.ownerId ? ` which has been redecorated to suit ${stage.getSave().actors[module.ownerId]?.name || 'its owner'}'s style (${stage.getSave().actors[module.ownerId]?.style})` : ''}. ` +
                 `Bear in mind that patients are from another universe, and may be unaware of details of this one. ` +
-                    `Explore the setting and what might arise from this unexpected meeting.` :
-                `Continue this chance encounter in the ${module?.getAttribute('name') || 'unknown'} module, exploring what might arise from this unexpected meeting.`;
+                    randomSuggestion :
+                `Continue this chance encounter in the ${module?.getAttribute('name') || 'unknown'} module. ${randomSuggestion}.`;
         case SkitType.ROLE_ASSIGNMENT:
             return !continuing ?
                 `This scene depicts an exchange between the player and ${actor.name}, following the player's decision to newly assign ${actor.name} to the role of ${skit.context.role || 'something new'} in the ${module?.getAttribute('name') || 'unknown'} module. ` +
@@ -385,6 +416,13 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
 
     const wrapupPrompt = wrapUp ? wrapUpPhrases[1] : (skit.script.length > 30 ? wrapUpPhrases[0] : '');
 
+    const generalAlternativePrompts = [
+        'Write compelling, fresh content that emphasizes dialogue and character interactions with suitable wit and flavor.',
+        'Craft engaging prose that highlights character dynamics and emotional beats that respect individual characters\' style.',
+        'Focus on creating vivid and distinct moments that bring out character personalities through their actions and dialogue.',
+        'Take care to avoid repetition, and instead focus on advancing the scene with new developments and interactions.'
+    ];
+    const alternativePrompt = generalAlternativePrompts[Math.floor(Math.random() * generalAlternativePrompts.length)];
 
     // Retry logic if response is null or response.result is empty
     let retries = 3;
@@ -432,8 +470,9 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                 `instead developing content within the existing rules. ` +
                 `As a result, avoid timelines, using vague durations for upcoming events; the game's mechanics may by unable to map directly to what is depicted in the skit, so ambiguity is preferred. ` +
                 `Generally, focus upon interpersonal dynamics, character growth, faction and patient relationships, and the state of the Station, its capabilities, and its inhabitants.` +
-                (skit.script.length > 0 ? (`\nIf the script reaches a conclusion, indicates a scene change, or hits an implied closure, ` +
-                `remember to insert a "[SUMMARY: A paragraph summarizing this scene's key events or impacts.]" tag, so the game engine can store the summary.${wrapupPrompt}`) : '')
+                (skit.script.length > 0 ? (`\nIf the script reaches a conclusion, depicts a scene change, or hits an implied closure, ` +
+                `remember to insert a "[SUMMARY: A paragraph summarizing this scene's key events or impacts.]" tag, so the game engine can store the summary.${wrapupPrompt}`) : '') +
+                `\n\n${alternativePrompt}`
             );
 
             const response = await stage.generator.textGen({
