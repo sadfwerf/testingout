@@ -255,7 +255,7 @@ export const EchoScreen: FC<EchoScreenProps> = ({stage, setScreenType, isVertica
 						variant="secondary"
 						onClick={cancel}
 					>
-						Cancel
+						Back
 					</Button>
 				)}
 

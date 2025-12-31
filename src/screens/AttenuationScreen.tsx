@@ -137,7 +137,7 @@ export const AttenuationScreen: FC<AttenuationScreenProps> = ({stage, setScreenT
 							fontWeight: 700
 						}}
 					>
-						Attenuation Chamber
+						Aperture
 					</Typography>
 
 					<Typography 
@@ -204,7 +204,7 @@ export const AttenuationScreen: FC<AttenuationScreenProps> = ({stage, setScreenT
 									fontWeight: 600
 								}}
 							>
-								Content Modifiers (Optional)
+								Content Modifiers
 							</Typography>
 							<TextField
 								fullWidth
@@ -258,7 +258,7 @@ export const AttenuationScreen: FC<AttenuationScreenProps> = ({stage, setScreenT
 						variant="secondary"
 						onClick={cancel}
 					>
-						Cancel
+						Back
 					</Button>
 					<Button
 						variant="primary"

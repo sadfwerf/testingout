@@ -251,7 +251,7 @@ export const CryoScreen: FC<CryoScreenProps> = ({stage, setScreenType, isVertica
 						variant="secondary"
 						onClick={cancel}
 					>
-						Cancel
+						Back
 					</Button>
 				)}
 

@@ -281,7 +281,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                         fontSize: 'clamp(10px, 1.5vw, 12px)',
                     }}
                 >
-                    v2025.12.29 - Randomized prompt instructions.
+                    v2025.12.30 - Saving changes.
                 </motion.div>
             </motion.div>
             </div>
