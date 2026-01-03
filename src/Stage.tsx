@@ -171,14 +171,11 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         this.currentSave = this.saves[this.saveSlot] || this.getFreshSave();
 
         if (this.betaMode) {
-            this.mcp.registerTool('modifyStationStat',
+
+            this.mcp.tool('modify-station-stat', 'If events result in a change to a station stat, use this tool to register a station stat change.',
                 {
-                    title: 'Modify a Station Stat',
-                    description: 'If events result in a change to a station stat, use this tool to register a station stat change.',
-                    inputSchema: {
                         stat: z.enum(Object.values(StationStat) as [string, ...string[]]),
                         change: z.number().min(-10).max(10),
-                    },
                 },
                 async ({ stat, change }): Promise<CallToolResult> => {
                     // Eventually, we will attach this to some sort of resolution content for the current skit, to be displayed in SkitScreen before the "Close" button becomes available, and executed when the skit ends.
@@ -189,15 +186,11 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 }
             );
 
-            this.mcp.registerTool('modifyActorStat',
+            this.mcp.tool('modify-actor-stat', 'If events result in a change to an actor (character) stat, use this tool to register an actor stat change.',
                 {
-                    title: 'Modify an Actor Stat',
-                    description: 'If events result in a change to an actor (character) stat, use this tool to register an actor stat change.',
-                    inputSchema: {
-                        actor: z.string().min(1),
-                        stat: z.enum(Object.values(Stat) as [string, ...string[]]),
-                        change: z.number().min(-10).max(10),
-                    },
+                    actor: z.string().min(1),
+                    stat: z.enum(Object.values(Stat) as [string, ...string[]]),
+                    change: z.number().min(-10).max(10),
                 },
                 async ({ actor, stat, change }): Promise<CallToolResult> => {
                     // Eventually, we will attach this to some sort of resolution content for the current skit, to be displayed in SkitScreen before the "Close" button becomes available, and executed when the skit ends.
