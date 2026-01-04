@@ -116,8 +116,9 @@ export const AttenuationScreen: FC<AttenuationScreenProps> = ({stage, setScreenT
 				flexDirection: 'column',
 				alignItems: 'center', 
 				justifyContent: 'center', 
-				padding: isVerticalLayout ? '20px' : '40px',
-				gap: '30px'
+				padding: isVerticalLayout ? '15px 20px' : '40px',
+				gap: isVerticalLayout ? '20px' : '30px',
+				overflowY: 'auto'
 			}}>
 				{/* Attenuation panel */}
 				<GlassPanel
@@ -209,7 +210,7 @@ export const AttenuationScreen: FC<AttenuationScreenProps> = ({stage, setScreenT
 							<TextField
 								fullWidth
 								multiline
-								rows={4}
+								rows={isVerticalLayout ? 3 : 4}
 								value={modifierText}
 								onChange={(e) => setModifierText(e.target.value)}
 								placeholder="Describe traits, themes, or characteristics to impose upon newly summoned characters..."

@@ -178,7 +178,11 @@ export const FactionDetailScreen: FC<FactionDetailScreenProps> = ({ faction, sta
                     padding: '20px',
                 }}
                 onClick={(e) => {
-                    if (e.target === e.currentTarget) {
+                    // Don't close if user is selecting text
+                    const selection = window.getSelection();
+                    const hasSelection = selection && selection.toString().length > 0;
+                    
+                    if (e.target === e.currentTarget && !hasSelection) {
                         onClose();
                     }
                 }}

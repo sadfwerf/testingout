@@ -379,7 +379,8 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
             ['#788ebdff', '#d3aa68ff', '#75c275ff', '#c28891ff', '#55bbb2ff'][Math.floor(Math.random() * 5)];
     const newActor = new Actor(
         generateUuid(),
-        parsedData['name'] || data.name,
+        // Replace name quotation marks with single-quotes to avoid issues where nicknames are highlighted as dialogue:
+        (parsedData['name'] || data.name).replace(/["“”]/g, "'"),
         data.fullPath || '',
         data.avatar || '',
         parsedData['description'] || '',

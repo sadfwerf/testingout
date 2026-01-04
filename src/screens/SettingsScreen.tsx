@@ -199,7 +199,11 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                 }}
                 onClick={(e) => {
                     // Close if clicking backdrop (but not during new game setup)
-                    if (e.target === e.currentTarget && !isNewGame) {
+                    // Don't close if user is selecting text
+                    const selection = window.getSelection();
+                    const hasSelection = selection && selection.toString().length > 0;
+                    
+                    if (e.target === e.currentTarget && !isNewGame && !hasSelection) {
                         onCancel();
                     }
                 }}

@@ -228,7 +228,11 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                 }}
                 onClick={(e) => {
                     // Close if clicking backdrop
-                    if (e.target === e.currentTarget) {
+                    // Don't close if user is selecting text
+                    const selection = window.getSelection();
+                    const hasSelection = selection && selection.toString().length > 0;
+                    
+                    if (e.target === e.currentTarget && !hasSelection) {
                         onClose();
                     }
                 }}
