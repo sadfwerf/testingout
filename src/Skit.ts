@@ -473,7 +473,7 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                 (skit.script.length > 0 ? (`\nIf the script reaches a conclusion, depicts a scene change, or hits an implied closure, ` +
                 `remember to insert a "[SUMMARY: A paragraph summarizing this scene's key events or impacts.]" tag, so the game engine can store the summary.${wrapupPrompt}`) : '') +
                 `\n\n${alternativePrompt}` +
-                ((stage.getSave().language || 'English').toLowerCase() !== 'english' ? `\n\nNote: The game is currently being played in ${stage.getSave().language}. Regardless of historic language use, please generate this skit content in ${stage.getSave().language} accordingly. The special emotion and movement tags continue to use English (these are invisible to the user).` : '')
+                ((stage.getSave().language || 'English').toLowerCase() !== 'english' ? `\n\nNote: The game is now being played in ${stage.getSave().language}. Regardless of historic language use, generate this skit content in ${stage.getSave().language} accordingly. Special emotion and movement tags continue to use English (these are invisible to the user).` : '')
             );
 
             const response = await stage.generator.textGen({
