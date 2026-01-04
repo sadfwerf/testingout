@@ -864,7 +864,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                                 ? 'Scene concluded' 
                                 : (loading ? 'Generating...' : 'Type your course of action...')
                         }
-                        disabled={sceneEnded || loading}
+                        disabled={loading}
                         variant="outlined"
                         size="small"
                         sx={{
