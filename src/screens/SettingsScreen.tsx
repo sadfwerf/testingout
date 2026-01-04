@@ -638,7 +638,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                                 fontWeight: 'bold',
                                             }}
                                         >
-                                            Language (Experimental)
+                                            Language
                                         </label>
                                         <div style={{ position: 'relative' }}>
                                             <TextInput
