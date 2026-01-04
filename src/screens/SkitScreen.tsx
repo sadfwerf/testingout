@@ -848,15 +848,18 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                             if (e.key === 'Enter') {
                                 e.preventDefault();
-                                if (!sceneEnded && !loading) {
-                                    // If input is blank, progress the script; otherwise submit input
-                                    if (inputText.trim() === '' && index < skit.script.length) {
-                                        next();
+                                if (!loading) {
+                                    if (sceneEnded && inputText.trim() === '') {
+                                        handleClose();
                                     } else {
-                                        handleSubmit();
+                                        // If input is blank, progress the script; otherwise submit input
+                                        if (inputText.trim() === '' && index < skit.script.length) {
+                                            next();
+                                        } else {
+                                            handleSubmit();
+                                        }
                                     }
                                 }
-                                else if (sceneEnded) handleClose();
                             }
                         }}
                         placeholder={
