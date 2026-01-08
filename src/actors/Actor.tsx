@@ -39,7 +39,7 @@ const ART_PROMPT: {[key in ArtStyle]: string} = {
     'original': 'A professional upper-body portrait of this character',
     'anime': 'Render this character in a classic visual novel, anime style with vibrant colors, expressive features, inks, and cel shading',
     'chibi': 'Render this character in a chibi style with exaggerated proportions, large eyes, and a cute, playful appearance; use bright colors and a bold white outline',
-    'comic': 'Render this character in a comicbook style with dynamic poses, intense inks, heavy contours, bold lines, and oversaturated colors. Pulls from the aesthetics of late-90s comicbooks, in the style of studios like Image or WildStorm.',
+    'comic': 'Draw and ink this character in a clean, dynamic comicbook style with dynamic poses, intense blacks, heavy contours, bold lines, and oversaturated colors. Pull inspiration from the Dark Age of comicbooks, in the style of studios like Image or WildStorm.',
     'pixel art': 'Render this character in a half-resolution pixel art style, with a limited color palette, dithered shading, and vibrant retro aesthetic',
     'hyper-realistic': 'Render this character in a hyper-realistic style with intricate details, elaborate textures, and dramatic lighting to create a striking and immersive illustration',
     'realistic': 'Picture this character in a photographic style with natural proportions, detailed textures, and subtle lighting to create a believable and lifelike image',
