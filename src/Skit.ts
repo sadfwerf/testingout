@@ -457,7 +457,7 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                 `actions are depicted in prose and character dialogue in quotation marks. Characters present their own actions and dialogue, while events within the scene are attributed to a NARRATOR. ` +
                 `Although a loose script format is employed, the actual content should be professionally edited narrative prose. ` +
                 `Entries from the player, ${stage.getSave().player.name}, are written in first-person, while other entries consistently refer to ${stage.getSave().player.name} in second-person; all other characters are referred to in third-person, even in their own entries.` +
-                `Tag Instruction:\n` +
+                `\n\nTag Instruction:\n` +
                 `  Embedded within this script, you may employ special tags to trigger various game mechanics. ` +
                 `\n\n  Emotion tags ("[CHARACTER NAME EXPRESSES JOY]") should be used to indicate visible emotional shifts in a character's appearance using a single-word emotion name. ` +
                 `\n\n  A [PAUSE] tag can be used to signal a suspension of this excerpt without fully ending the scene, in case the three-to-five-entry quota has already been met. ` +
