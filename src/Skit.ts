@@ -336,16 +336,6 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
         ) +
         `\n\n${playerName}'s profile: ${save.player.description}` +
         (stationAide ? (presentActorIds.has(stationAide.id) ? `\n\nThe holographic StationAide™ ${stationAide.name} is active in the scene. Profile: ${stationAide.profile}` : `\n\nThe holographic StationAide™ ${stationAide.name} remains absent from the scene unless summoned by the Director.`) : '') +
-        // List characters who are here, along with full stat details:
-        `\n\nPresent Characters (Currently in the Scene):\n${presentPatients.map(actor => {
-            const roleModule = stage.getLayout().getModulesWhere((m: any) => 
-                m && m.type !== 'quarters' && m.ownerId === actor.id
-            )[0];
-            const birthDay = save.timeline?.find(event => event.skit?.actorId === actor.id && event.skit?.type === SkitType.INTRO_CHARACTER)?.day || save.day;
-            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Character Arc: ${actor.characterArc}\n    Days Aboard: ${save.day - birthDay}\n` +
-            (roleModule ? `    Role: ${roleModule.getAttribute('role') || 'Patient'} (${actor.heldRoles[roleModule.getAttribute('role') || 'Patient'] || 0} days)\n` : '') +
-            `    Role Description: ${roleModule?.getAttribute('roleDescription') || 'This character has no assigned role aboard the PARC. They are to focus upon their own needs.'}\n` +
-            `    Stats:\n      ${Object.entries(actor.stats).map(([stat, value]) => `${stat}: ${value}`).join(', ')}`}).join('\n')}` +
         // List non-present characters for reference; just need description and profile:
         `\n\nAbsent Characters (Aboard the PARC But Not Currently in the Scene):\n${absentPatients.map(actor => {
             // Roll name and current location
@@ -372,19 +362,16 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
             return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Days in Cryo: ${save.day - entranceDate}`;
         }).join('\n')}` : '') +
         // List stat meanings, for reference:
-        `\n\nStats:\n${Object.values(Stat).map(stat => `${stat.toUpperCase()}: ${getStatDescription(stat)}`).join('\n')}` +
-        `\n\nScene Prompt:\n${generateSkitTypePrompt(skit, stage, skit.script.length > 0)}` +
-        (faction ? `\n\n${faction.name} Details: ${faction.description}\n${faction.name} Aesthetic: ${faction.visualStyle}` : '') +
+        `\n\nStats:\n${Object.values(Stat).map(stat => `  ${stat.toUpperCase()}: ${getStatDescription(stat)}`).join('\n')}` +
+        `\n\nScene Prompt:\n  ${generateSkitTypePrompt(skit, stage, skit.script.length > 0)}` +
+        (faction ? `\n\n${faction.name} Details:\n  ${faction.description}\n${faction.name} Aesthetic:\n  ${faction.visualStyle}` : '') +
         (factionRepresentative ? `\n${faction?.name || 'The faction'}'s representative, ${factionRepresentative.name}, appears on-screen. Their description: ${factionRepresentative.description}` : 'They have no designated liaison for this communication; any characters introduced during this scene will be transient.') +
-        (faction ? `\nThis skit may explore the nature of this faction's relationship with an intentions for the Director, the PARC, or its patients. ` +
-            `Typically, this and other faction contact the PARC to express interest in making offers for resources, information, or patients. ` +
+        (faction ? `\n\nThis skit may explore the nature of this faction's relationship with an intentions for the Director, the PARC, or its patients. ` +
+            `Typically, this and other factions contact the PARC to express interest in making offers for resources, information, or patients. ` +
             `The faction could have a temporary job to offer a patient, or suggest an exchange of resources or favors. Or they could have a permanent role in mind for an ideal candidate patient. ` +
             `If a patient is already on-loan to this faction, use this opportunity to update the Director on their status, depict the patient's return, or convert them to a permanent placement with the faction. ` +
             `Remember to use appropriate tags when moving characters on- or off-station in the skit. ` : '') +
-        `\n\nKnown Factions: \n${Object.values(stage.getSave().factions).filter(faction => faction.active && faction.reputation > 0).map(faction => `${faction.name}: ${faction.getReputationDescription()}`).join('\n')}` +
-        (module ? (`\n\nCurrent Module:\nThe following scene is set in ` +
-            `${module.type === 'quarters' ? `${moduleOwner ? `${moduleOwner.name}'s` : 'a vacant'} quarters` : 
-            `the ${module.getAttribute('name') || 'Unknown'}`}. ${module.getAttribute('skitPrompt') || 'No description available.'}\n`) : '') +
+        `\n\nKnown Factions: \n  ${Object.values(stage.getSave().factions).filter(faction => faction.active && faction.reputation > 0).map(faction => `${faction.name}: ${faction.getReputationDescription()}`).join('\n  ')}` +
 
         ((historyLength > 0 && pastEvents.length) ? 
                 // Include last few skit scripts for context and style reference; use summary except for most recent skit or if no summary.
@@ -402,6 +389,20 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
                     return `Action ${stage.getSave().day - v.day} days ago: ${v.description || ''}`;
                 }
             }).join('') : '') +
+        (module ? (`\n\nCurrent Module:\n  The following scene is set in ` +
+            `${module.type === 'quarters' ? `${moduleOwner ? `${moduleOwner.name}'s` : 'a vacant'} quarters` : 
+            `the ${module.getAttribute('name') || 'Unknown'}`}. ${module.getAttribute('skitPrompt') || 'No description available.'}\n`) : '') +
+        // List characters who are here, along with full stat details:
+        `\n\nPresent Characters (Currently in the Scene):\n${presentPatients.map(actor => {
+            const roleModule = stage.getLayout().getModulesWhere((m: any) => 
+                m && m.type !== 'quarters' && m.ownerId === actor.id
+            )[0];
+            const birthDay = save.timeline?.find(event => event.skit?.actorId === actor.id && event.skit?.type === SkitType.INTRO_CHARACTER)?.day || save.day;
+            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Character Arc: ${actor.characterArc}\n    Days Aboard: ${save.day - birthDay}\n` +
+            (roleModule ? `    Role: ${roleModule.getAttribute('role') || 'Patient'} (${actor.heldRoles[roleModule.getAttribute('role') || 'Patient'] || 0} days)\n` : '') +
+            `    Role Description: ${roleModule?.getAttribute('roleDescription') || 'This character has no assigned role aboard the PARC. They are to focus upon their own needs.'}\n` +
+            `    Stats:\n      ${Object.entries(actor.stats).map(([stat, value]) => `${stat}: ${value}`).join(', ')}`}).join('\n')}` +
+
         `\n\n${instruction}`;
     return fullPrompt;
 }
@@ -449,26 +450,28 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                     `[SUMMARY: This moment of shared commaraderie has left Character Name hopeful about their future aboard the PARC.]\n\n`) : '') +
                 `Current Scene Script Log to Continue:\nSystem: ${buildScriptLog(skit)}` +
                 `\n\nPrimary Instruction:\n` +
-                `At the "System:" prompt, ${skit.script.length == 0 ? 'produce the initial moments of a scene (perhaps joined in medias res)' : 'extend or conclude the current scene script'} with three to five entries, ` +
+                `  At the "System:" prompt, ${skit.script.length == 0 ? 'produce the initial moments of a scene (perhaps joined in medias res)' : 'extend or conclude the current scene script'} with three to five entries, ` +
                 `based upon the Premise and the specified Scene Prompt. Primarily involve the Present Characters, although Absent Characters may be moved to this location using appropriate tags. ` +
                 `The script should consider characters' stats, relationships, past events, and the station's stats—among other factors—to craft a compelling scene. ` +
-                `\nFollow the structure of the strict Example Script formatting above: ` +
-                `actions are depicted in prose and character dialogue in quotation marks. Character's present their own actions and dialogue, while events within the scene are attributed to a NARRATOR. ` +
-                `Although a loose script format is employed, the actual content should be professionally edited narrative prose. Entries from the player, ${stage.getSave().player.name}, are written in first-person, while other entries consistently refer to ${stage.getSave().player.name} in second-person; all other characters are referred to in third-person, even in their own entries.\n` +
-                `Embedded within this script, you may employ special tags to trigger various game mechanics. ` +
-                `Emotion tags ("[CHARACTER NAME EXPRESSES JOY]") should be used to indicate visible emotional shifts in a character's appearance using a single-word emotion name. ` +
-                `A [PAUSE] tag can be used to signal a suspension of this excerpt without fully ending the scene, in case the three-to-five-entry quota has already been met. ` +
-                `Character movement tags ("[CHARACTER NAME moves to MODULE NAME]" or "[CHARACTER NAME moves to FACTION NAME]") must be included when a character moves to a different module on the station OR to a different faction (abstractly representing any faction mission or time away). ` +
+                `\n\n  Follow the structure of the strict Example Script formatting above: ` +
+                `actions are depicted in prose and character dialogue in quotation marks. Characters present their own actions and dialogue, while events within the scene are attributed to a NARRATOR. ` +
+                `Although a loose script format is employed, the actual content should be professionally edited narrative prose. ` +
+                `Entries from the player, ${stage.getSave().player.name}, are written in first-person, while other entries consistently refer to ${stage.getSave().player.name} in second-person; all other characters are referred to in third-person, even in their own entries.` +
+                `Tag Instruction:\n` +
+                `  Embedded within this script, you may employ special tags to trigger various game mechanics. ` +
+                `\n\n  Emotion tags ("[CHARACTER NAME EXPRESSES JOY]") should be used to indicate visible emotional shifts in a character's appearance using a single-word emotion name. ` +
+                `\n\n  A [PAUSE] tag can be used to signal a suspension of this excerpt without fully ending the scene, in case the three-to-five-entry quota has already been met. ` +
+                `\n\n  Character movement tags ("[CHARACTER NAME moves to MODULE NAME]" or "[CHARACTER NAME moves to FACTION NAME]") must be included when a character moves to a different module on the station OR to a different faction (abstractly representing any faction mission or time away). ` +
                 `MODULE NAME should be the name of an existing module type (e.g., 'comms', 'infirmary', 'lounge'), a character's quarters (e.g., 'Susan's quarters' or just 'quarters' for their own), or simply "Here" to move to the scene's location or "Another module" to leave this area. ` +
                 `A faction move is a more significant event, indicating a departure from the PARC itself, typically to visit a faction or engage in a mission or job for that faction (use the faction name as the location, even when the job is not "at" the faction). ` +
                 `The game engine uses [x moves to y] tags to update character locations and visually display character presence in scenes, so it is essential to use these tags when Absent Characters enter the scene or Present Characters leave. ` +
                 `Absent characters cannot speak or take actions until they have moved into the scene using a [CHARACTER NAME moves to HERE] tag. ` +
                 `The scene itself cannot transition to a new area. The tags are not presented to users, so the content of the script should reflect any included tags and vice-versa. ` +
                 (skit.script.length > 0 ? (`If a scene transition is desired, the current scene must first be summarized. ` +
-                    `A "[SUMMARY]" tag (e.g., "[SUMMARY: A paragraph summarizing the scene's events with key details and impacts.]") should be included when the scene reaches a conclusive moment. `) : '') +
-                `\nThis scene is a brief visual novel skit within a video game; as such, the scene avoids major developments which would fundamentally alter the mechanics or nature of the game, ` +
+                    `\n\n  A "[SUMMARY]" tag (e.g., "[SUMMARY: A paragraph summarizing the scene's events with key details and impacts.]") should be included when the scene reaches a conclusive moment. `) : '') +
+                `\n\nThis scene is a brief visual novel skit within a video game; as such, the scene avoids major developments which would fundamentally alter the mechanics or nature of the game, ` +
                 `instead developing content within the existing rules. ` +
-                `As a result, avoid timelines, using vague durations for upcoming events; the game's mechanics may by unable to map directly to what is depicted in the skit, so ambiguity is preferred. ` +
+                `As a result, avoid timelines or concrete, countable values throughout the skit, using vague durations or amounts for upcoming events; the game's mechanics may by unable to map directly to what is depicted in the skit, so ambiguity is preferred. ` +
                 `Generally, focus upon interpersonal dynamics, character growth, faction and patient relationships, and the state of the Station, its capabilities, and its inhabitants.` +
                 (skit.script.length > 0 ? (`\nIf the script reaches a conclusion, depicts a scene change, or hits an implied closure, ` +
                 `remember to insert a "[SUMMARY: A paragraph summarizing this scene's key events or impacts.]" tag, so the game engine can store the summary.${wrapupPrompt}`) : '') +
