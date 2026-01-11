@@ -32,10 +32,10 @@ tags:
  - 'PARC'
 
 creator_notes: "
-This is a simulation game where you run a rehabilitation center
-for survivors of a multiversal apocalypses. Manage resources, build facilities, and help patients
-find a place in a new universe.
-I'll prettify these notes and add documentation later; for now, see the <a href=\"https://chub.ai/characters/JakeH/post-apocalypse-rehabilitation-center-20622f03e7a4\">official bot</a>.
+<p>This is a generative simulation game where you run a rehabilitation center
+for survivors of multiversal apocalypses. Manage resources, extend the station, and help patients
+find their place in a new universe.</p>
+<p>I'll prettify these notes and add documentation later; for now, see the <a href=\"https://chub.ai/characters/JakeH/post-apocalypse-rehabilitation-center-20622f03e7a4\">official bot</a>.</p>
 "
 
 # The schema of any user-supplied config.
