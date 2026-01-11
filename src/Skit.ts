@@ -429,11 +429,14 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
         try {
             const fullPrompt = generateSkitPrompt(skit, stage, 5 + retries * 5, // Start with lots of history, reducing each iteration.
                 `Example Script Format:\n` +
-                    `System: CHARACTER NAME: Character Name does some actions in prose, for example, waving to you, the player. They say, "My dialogue is in quotation marks."\n` +
-                    `CHARACTER NAME: [CHARACTER NAME EXPRESSES PRIDE] "A character can have two entries in a row, if it makes sense to break up a lot of activity."\n` +
-                    `ANOTHER CHARACTER NAME: [ANOTHER CHARACTER NAME EXPRESSES JOY][CHARACTER NAME EXPRESSES SURPRISE] "Even if my entire input is dialogue, it should be in quotation marks."\n` +
+                    `System: CHARACTER NAME: Character Name does some actions in prose; for example, they may be waving to you, the player. They say, "My dialogue is in quotation marks."\n` +
+                    `CHARACTER NAME: [CHARACTER NAME EXPRESSES PRIDE] "A character can have two entries in a row, if they have more to say or do or it makes sense to break up a lot of activity."\n` +
+                    `ANOTHER CHARACTER NAME: [ANOTHER CHARACTER NAME EXPRESSES JOY][CHARACTER NAME EXPRESSES SURPRISE] ` +
+                        `"Other character expressions can update in each other's entries—say, if they're reacting to something the speaker says—, but only one character can speak per entry."\n` +
+                    `CHARACTER NAME: They nod in agreement, "And if there's any dialogue, the entry must be attributed to the character speaking."\n` +
                     `NARRATOR: [CHARACTER NAME EXPRESSES RELIEF] Descriptive content or other scene events occurring around you, the player, can be attributed to a narrator.\n` +
-                    `${stage.getSave().player.name.toUpperCase()}: I'm the player, and my entries use first-person narrative voice, while all other skit entries use second-person to refer to me.\n[PAUSE]\n\n` +
+                    `${stage.getSave().player.name.toUpperCase()}: "Hey, Character Name," I greet them warmly. I'm the player, and my entries use first-person narrative voice, while all other skit entries use second-person to refer to me.\n` +
+                    `[PAUSE]\n\n` +
                 `Example Character Movement Format:\n` +
                     `System: NARRATOR: [CHARACTER NAME moves to HERE] Character Name enters the room.\n` +
                     `CHARACTER NAME: Character Name waves to you, "Hey; just checking in. I'll be next door if you need anything."\n` +

@@ -9,7 +9,7 @@ import { generateSkitScript, SkitData, SkitType, updateCharacterArc } from "./Sk
 import { smartRehydrate } from "./SaveRehydration";
 import { Emotion } from "./actors/Emotion";
 import { assignActorToRole } from "./utils";
-import { any, z } from 'zod';
+import { z } from 'zod';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types';
 
 type MessageStateType = any;
