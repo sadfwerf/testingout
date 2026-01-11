@@ -196,6 +196,7 @@ export async function loadReserveActorFromFullPath(fullPath: string, stage: Stag
         fullPath: item.node.fullPath,
         personality: item.node.definition.personality.replaceAll('{{char}}', dataName).replaceAll('{{user}}', 'Individual X'),
         avatar: item.node.max_res_url,
+        voiceId: item.node.definition.voice_id || ''
     };
     return loadReserveActor(data, stage);
 }
@@ -260,13 +261,6 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
 
     if (Object.keys(bannedWordSubstitutes).some(word => data.personality.toLowerCase().includes(word) || data.name.toLowerCase().includes(word))) {
         console.log(`Immediately discarding actor due to banned words: ${data.name}`);
-        console.log(data);
-        // Temporarily output any banned words that were found:
-        const foundWords = Object.keys(bannedWordSubstitutes).filter(word =>
-            data.personality.toLowerCase().includes(word) ||
-            data.name.toLowerCase().includes(word)
-        );
-        console.log('Found banned words:', foundWords);
         return null;
     } else if (/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/.test(`${data.name}${data.personality}`)) {
         console.log(`Immediately discarding actor due to non-english characters: ${data.name}`);
@@ -394,7 +388,7 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
         parsedData['description'] || '',
         parsedData['profile'] || '',
         parsedData['style'] || '',
-        parsedData['voice'] || '',
+        data.voiceId || parsedData['voice'] || '',
         {}, 
         {
             [Stat.Brawn]: parseInt(parsedData['brawn']) || DEFAULT_TRAIT_MAP[Stat.Brawn],
