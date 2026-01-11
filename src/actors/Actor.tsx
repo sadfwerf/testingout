@@ -196,7 +196,8 @@ export async function loadReserveActorFromFullPath(fullPath: string, stage: Stag
         fullPath: item.node.fullPath,
         personality: item.node.definition.personality.replaceAll('{{char}}', dataName).replaceAll('{{user}}', 'Individual X'),
         avatar: item.node.max_res_url,
-        voiceId: item.node.definition.voice_id || ''
+        // If the voice ID is not in the VOICE_MAP, it is a custom voice and should be preserved
+        voiceId: !VOICE_MAP[item.node.definition.voice_id] ? item.node.definition.voice_id : ''
     };
     return loadReserveActor(data, stage);
 }
