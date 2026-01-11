@@ -194,7 +194,6 @@ export async function loadReserveActorFromFullPath(fullPath: string, stage: Stag
     const data = {
         name: dataName,
         fullPath: item.node.fullPath,
-        description: item.node.definition.description.replaceAll('{{char}}', dataName).replaceAll('{{user}}', 'Individual X'),
         personality: item.node.definition.personality.replaceAll('{{char}}', dataName).replaceAll('{{user}}', 'Individual X'),
         avatar: item.node.max_res_url,
     };
@@ -249,7 +248,6 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
 
     // Preserve content while removing JSON-like structures.
     data.name = data.name.replace(/{/g, '(').replace(/}/g, ')');
-    data.description = data.description.replace(/{/g, '(').replace(/}/g, ')');
     data.personality = data.personality.replace(/{/g, '(').replace(/}/g, ')');
 
     // Apply banned word substitutions:
@@ -257,21 +255,20 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
         // Need to do a case-insensitive replacement for each occurrence:
         const regex = new RegExp(bannedWord, 'gi');
         data.name = data.name.replace(regex, substitute);
-        data.description = data.description.replace(regex, substitute);
         data.personality = data.personality.replace(regex, substitute);
     }
 
-    if (Object.keys(bannedWordSubstitutes).some(word => data.description.toLowerCase().includes(word) || data.personality.toLowerCase().includes(word) || data.name.toLowerCase().includes(word))) {
+    if (Object.keys(bannedWordSubstitutes).some(word => data.personality.toLowerCase().includes(word) || data.name.toLowerCase().includes(word))) {
         console.log(`Immediately discarding actor due to banned words: ${data.name}`);
+        console.log(data);
         // Temporarily output any banned words that were found:
         const foundWords = Object.keys(bannedWordSubstitutes).filter(word =>
-            data.description.toLowerCase().includes(word) ||
             data.personality.toLowerCase().includes(word) ||
             data.name.toLowerCase().includes(word)
         );
         console.log('Found banned words:', foundWords);
         return null;
-    } else if (/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/.test(`${data.name}${data.description}${data.personality}`)) {
+    } else if (/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/.test(`${data.name}${data.personality}`)) {
         console.log(`Immediately discarding actor due to non-english characters: ${data.name}`);
         return null;
     }
@@ -314,7 +311,7 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
             `score the character on a scale of 1-10 for the following traits: BRAWN, SKILL, NERVE, WITS, CHARM, LUST, JOY, and TRUST.\n` +
             `Bear in mind the character's current, diminished state—as a newly reconstituted and relatively powerless individual—and not their original potential when scoring these traits (but omit your reasons from the response structure); ` +
             `some characters may not respond well to being essentially resurrected into a new timeline, losing much of what they once had. Others may be grateful for a new beginning.\n\n` +
-            `Original Details about ${data.name}:\n${data.description} ${data.personality}\n\n` +
+            `Original Details about ${data.name}:\n ${data.personality}\n\n` +
             `Available Voices:\n` +
             Object.entries(VOICE_MAP).map(([voiceId, voiceDesc]) => '  - ' + voiceId + ': ' + voiceDesc).join('\n') +
             `Instructions: After carefully considering this description and the rules provided, generate a concise breakdown for a character based upon these details in the following strict format:\n` +

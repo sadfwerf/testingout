@@ -624,8 +624,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 const actorData = {
                     name: save.aide.name,
                     fullPath: '',
-                    description: `The PARC's StationAide™ holographic assistant: ${save.aide.description}`,
-                    personality: ''
+                    personality: `The PARC's StationAide™ holographic assistant: ${save.aide.description}`
                 }
                 // Retry a few times if it fails (or returns null):
                 for (let attempt = 0; attempt < 3; attempt++) {
