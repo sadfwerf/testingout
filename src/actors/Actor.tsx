@@ -263,6 +263,13 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
 
     if (Object.keys(bannedWordSubstitutes).some(word => data.description.toLowerCase().includes(word) || data.personality.toLowerCase().includes(word) || data.name.toLowerCase().includes(word))) {
         console.log(`Immediately discarding actor due to banned words: ${data.name}`);
+        // Temporarily output any banned words that were found:
+        const foundWords = Object.keys(bannedWordSubstitutes).filter(word =>
+            data.description.toLowerCase().includes(word) ||
+            data.personality.toLowerCase().includes(word) ||
+            data.name.toLowerCase().includes(word)
+        );
+        console.log('Found banned words:', foundWords);
         return null;
     } else if (/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/.test(`${data.name}${data.description}${data.personality}`)) {
         console.log(`Immediately discarding actor due to non-english characters: ${data.name}`);

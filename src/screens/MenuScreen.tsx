@@ -171,11 +171,11 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
             tooltip: disableAllButtons ? 'Currently unavailable' : 'Adjust game settings and preferences',
             icon: Settings
         },
-        ...(saveExists() ? [{
+        ...(saveExists() && stage().isAuthenticated ? [{
             key: 'manage-content',
             label: 'Manage Content',
             onClick: () => setShowContentManagement(true),
-            enabled: !disableAllButtons,
+            enabled: !disableAllButtons && stage().isAuthenticated,
             tooltip: disableAllButtons ? 'Currently unavailable' : 'View and edit generative content',
             icon: EditNote,
         }] : []),
@@ -281,7 +281,22 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                         fontSize: 'clamp(10px, 1.5vw, 12px)',
                     }}
                 >
-                    v2026.01.08 - Some art prompting changes.
+                    {stage().isAuthenticated 
+                        ? 'v2026.01.10 - Bug fixes and QoL changes. Some new voices.'
+                        : (
+                            <>
+                                This is an unofficial bot; for the latest version for PARC, visit:{' '}
+                                <a 
+                                    href="https://chub.ai/characters/JakeH/post-apocalypse-rehabilitation-center-20622f03e7a4" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    style={{ color: 'rgba(0, 255, 136, 0.8)', textDecoration: 'underline' }}
+                                >
+                                    chub.ai
+                                </a>
+                            </>
+                        )
+                    }
                 </motion.div>
             </motion.div>
             </div>
