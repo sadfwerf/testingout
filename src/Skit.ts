@@ -439,7 +439,7 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                     `[PAUSE]\n\n` +
                 `Example Character Movement Format:\n` +
                     `System: NARRATOR: [CHARACTER NAME moves to HERE] Character Name enters the room.\n` +
-                    `CHARACTER NAME: Character Name waves to you, "Hey; just checking in. I'll be next door if you need anything."\n` +
+                    `CHARACTER NAME: Character Name waves to you, "Hey; just checking in. I was absent a moment ago, so a [x moves to y] tag was necessary before I could speak in the scene. I'll be next door if you need anything."\n` +
                     `NARRATOR: [CHARACTER NAME moves to MODULE NAME] Character Name ducks out with a smile. You hear their boots fade away down the corridor beyond.\n[PAUSE]\n\n` +
                 `Example Character Departure from PARC Format:\n` +
                     `System: CHARACTER NAME: They sigh profoundly. "Well, I suppose this is goodbye for now." They wave as they somberly step through the bulkhead.\n` +
@@ -466,8 +466,9 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                 `MODULE NAME should be the name of an existing module type (e.g., 'comms', 'infirmary', 'lounge'), a character's quarters (e.g., 'Susan's quarters' or just 'quarters' for their own), or simply "Here" to move to the scene's location or "Another module" to leave this area. ` +
                 `A faction move is a more significant event, indicating a departure from the PARC itself, typically to visit a faction or engage in a mission or job for that faction (use the faction name as the location, even when the job is not "at" the faction). ` +
                 `The game engine uses [x moves to y] tags to update character locations and visually display character presence in scenes, so it is essential to use these tags when Absent Characters enter the scene or Present Characters leave. ` +
-                `Absent characters cannot speak or take actions until they have moved into the scene using a [CHARACTER NAME moves to HERE] tag. ` +
-                `The scene itself cannot transition to a new area. The tags are not presented to users, so the content of the script should reflect any included tags and vice-versa. ` +
+                `Absent characters may not physically participate in the scene until they have moved into the area using a [CHARACTER NAME moves to HERE] tag ` +
+                `(if an Absent character has erroneously participated, add the tag after the fact to correct the discrepancy going forward). ` +
+                `The scene itself cannot transition to a new area. These tags are not presented to users, so the content of the script should also mention characters entering or exiting the scene. ` +
                 (skit.script.length > 0 ? (`If a scene transition is desired, the current scene must first be summarized. ` +
                     `\n\n  A "[SUMMARY]" tag (e.g., "[SUMMARY: A paragraph summarizing the scene's events with key details and impacts.]") should be included when the scene reaches a conclusive moment. `) : '') +
                 `\n\nThis scene is a brief visual novel skit within a video game; as such, the scene avoids major developments which would fundamentally alter the mechanics or nature of the game, ` +
