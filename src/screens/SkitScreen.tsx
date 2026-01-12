@@ -474,27 +474,28 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
             const isPlayerSpeaker = !matchingActor && playerName && namesMatch(playerName.trim().toLowerCase(), currentSpeakerName.toLowerCase());
             
             // Reset typing state BEFORE setting new message to prevent flash of full content
-            // Only reset if the index has changed
+            // Only reset if the index has changed. Also handle audio playback here, to ensure it doesn't redundantly play when setting index to the current index.
             if (prevIndexRef.current !== index) {
                 setFinishTyping(false);
+                if (currentAudioRef.current) {
+                    // Stop any currently playing audio
+                    currentAudioRef.current.pause();
+                    currentAudioRef.current.currentTime = 0;
+                }
+                if (audioEnabled && skit.script[index]?.speechUrl) {
+                    const audio = new Audio(skit.script[index].speechUrl);
+                    currentAudioRef.current = audio;
+                    audio.play().catch(err => {
+                        console.error('Error playing audio:', err);
+                    });
+                }
                 prevIndexRef.current = index;
             }
             setMessageKey(prev => prev + 1); // Increment key to force fresh TypeOut mount
             setSpeaker(matchingActor || null);
             setDisplayName(matchingActor?.name || (isPlayerSpeaker ? playerName : ''));
-            setDisplayMessage(formatMessage(skit.script[index]?.message || '', matchingActor))
-            if (currentAudioRef.current) {
-                // Stop any currently playing audio
-                currentAudioRef.current.pause();
-                currentAudioRef.current.currentTime = 0;
-            }
-            if (audioEnabled && skit.script[index]?.speechUrl) {
-                const audio = new Audio(skit.script[index].speechUrl);
-                currentAudioRef.current = audio;
-                audio.play().catch(err => {
-                    console.error('Error playing audio:', err);
-                });
-            }
+            setDisplayMessage(formatMessage(skit.script[index]?.message || '', matchingActor));
+
         } else {
             setSpeaker(null);
             setDisplayName('');
@@ -602,8 +603,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                 }}>
                     <ActorCard
                         actor={hoveredActor}
-                        isAway={hoveredActor.isOffSite(stage().getSave())}
-
+                        visitingFaction={hoveredActor.isOffSite(stage().getSave()) ? stage().getSave().factions[hoveredActor.locationId] : undefined}
                         role={hoveredActor.getRole(stage().getSave())}
                         collapsedSections={[ActorCardSection.STATS]}
                     />

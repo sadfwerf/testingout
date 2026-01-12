@@ -119,7 +119,7 @@ export const ActorCarousel: FC<ActorCarouselProps> = ({
 							)}
 							<ActorCard
 								actor={actor}
-								isAway={actor.isOffSite(stage.getSave())}
+								visitingFaction={actor.isOffSite(stage.getSave()) ? stage.getSave().factions[actor.locationId] : undefined}
 								collapsedSections={[ActorCardSection.PORTRAIT]}
 								expandedSections={[ActorCardSection.PORTRAIT, ActorCardSection.STATS]}
 								isExpanded={isExpanded}

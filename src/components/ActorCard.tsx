@@ -4,6 +4,8 @@ import Actor, { Stat, ACTOR_STAT_ICONS } from '../actors/Actor';
 import Nameplate from './Nameplate';
 import AuthorLink from './AuthorLink';
 import { scoreToGrade } from '../utils';
+import Faction from '../factions/Faction';
+import { FlightTakeoff } from '@mui/icons-material';
 
 export enum ActorCardSection {
     STATS = 'stats',
@@ -12,7 +14,6 @@ export enum ActorCardSection {
 
 interface ActorCardProps {
     actor: Actor;
-    isAway: boolean;
     role?: string;
     collapsedSections?: ActorCardSection[];
     expandedSections?: ActorCardSection[];
@@ -34,6 +35,8 @@ interface ActorCardProps {
     style?: React.CSSProperties;
     /** Additional class name */
     className?: string;
+    /** The faction the actor is visiting (when away from station) */
+    visitingFaction?: Faction;
 }
 
 /**
@@ -42,7 +45,6 @@ interface ActorCardProps {
  */
 export const ActorCard: FC<ActorCardProps> = ({
     actor,
-    isAway,
     role,
     collapsedSections = [ActorCardSection.STATS, ActorCardSection.PORTRAIT],
     expandedSections = [],
@@ -55,8 +57,10 @@ export const ActorCard: FC<ActorCardProps> = ({
     onDragEnd,
     whileHover,
     style,
-    className
+    className,
+    visitingFaction
 }) => {
+    const isAway = !!visitingFaction;
     const currentSections = (isExpanded && expandedSections?.length > 0) ? expandedSections : collapsedSections;
     const clickable = !!onClick;
 
@@ -99,7 +103,7 @@ export const ActorCard: FC<ActorCardProps> = ({
         <motion.div {...wrapperProps}>
             <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 {/* Away Status Indicator */}
-                {isAway && (
+                {visitingFaction && (
                     <div style={{
                         fontSize: 'clamp(0.65rem, 1.8vmin, 0.85rem)',
                         color: '#ffa726',
@@ -110,9 +114,13 @@ export const ActorCard: FC<ActorCardProps> = ({
                         borderRadius: '4px',
                         textAlign: 'center',
                         textShadow: '0 0 8px #ffa726',
-                        border: '1px solid rgba(255, 167, 38, 0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px',
                     }}>
-                        ⏱ OFF-STATION
+                        <FlightTakeoff style={{ fontSize: 'clamp(0.7rem, 1.8vmin, 0.9rem)' }} />
+                        Visiting {visitingFaction.name}
                     </div>
                 )}
                 

@@ -1296,8 +1296,8 @@ export const StationScreen: FC<StationScreenProps> = ({stage, setScreenType, isV
                                             >
                                                 <ActorCard
                                                     actor={actor}
-                                                    isAway={actor.isOffSite(stage().getSave())}
                                                     role={actor.getRole(stage().getSave())}
+                                                    visitingFaction={actor.isOffSite(stage().getSave()) ? stage().getSave().factions[actor.locationId] : undefined}
                                                     isDragging={draggedActor?.id === actor.id}
                                                     draggable={true}
                                                     onDragStart={(e: React.DragEvent) => {
@@ -1504,8 +1504,8 @@ export const StationScreen: FC<StationScreenProps> = ({stage, setScreenType, isV
                                                 >
                                                     <ActorCard
                                                         actor={actor}
-                                                        isAway={actor.isOffSite(stage().getSave())}
                                                         role={actor.getRole(stage().getSave())}
+                                                        visitingFaction={actor.isOffSite(stage().getSave()) ? stage().getSave().factions[actor.locationId] : undefined}
                                                         isDragging={draggedActor?.id === actor.id}
                                                         draggable={true}
                                                         onDragStart={(e: React.DragEvent) => {
