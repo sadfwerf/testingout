@@ -232,6 +232,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 console.log('Fetched save slot data from storage API:', response);
 
                 if (response && response.data && response.data.length > 0 && response.data[0].value && Object.keys(response.data[0].value).length > 0) {
+                    console.log(`Loaded save data for slot ${slot} from storage API.`);
                     saves[slot] = this.rehydrateSave(response.data[0].value);
                 } else if (response && response.status !== 200) {
                     console.log(`Falling back to chatstate save for slot ${slot} due to error response:`, response);
@@ -245,10 +246,11 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         
         // If any saves were loaded, use them:
         if (saves.some(save => save !== undefined)) {
+            console.log('Loaded saves from storage API.');
             this.saves = saves;
         } else {
             console.log('No saves loaded from storage API; using existing saves.');
-            this.saveAllGames()
+            this.saveAllGames();
         }
 
         // Remove saves that have no actors or layout (they didn't even initialize an aide); set those indices to undefined
