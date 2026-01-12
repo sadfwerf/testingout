@@ -180,6 +180,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
         if (this.betaMode) {
 
+            console.log('Registering tools.');
             this.mcp.registerTool('modify-station-stat',
                 {
                     title: 'Modify Station Stat',
