@@ -199,7 +199,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 }
             );
 
-            this.mcp.tool('modify-actor-stat', 
+            this.mcp.registerTool('modify-actor-stat', 
                 {
                     title: 'Modify Actor Stat',
                     description: 'If events result in a change to an actor stat, use this tool to register an actor stat change.',
