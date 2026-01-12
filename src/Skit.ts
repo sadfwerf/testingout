@@ -255,9 +255,10 @@ function processMovementTag(rawTag: string, stage: Stage, skit: SkitData): { act
         if (targetModule) {
             destinationModuleId = targetModule.id;
         } else {
-            // If no module found, check if it matches a faction name
-            const matchingFaction = Object.values(stage.getSave().factions).find(faction =>
-                namesMatch(destinationName, faction.name)
+            // If no module found, check if it matches a faction name using best match logic
+            const matchingFaction = findBestNameMatch(
+                destinationName,
+                Object.values(stage.getSave().factions)
             );
             if (matchingFaction) {
                 destinationModuleId = matchingFaction.id;
