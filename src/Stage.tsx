@@ -224,7 +224,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     async load(): Promise<Partial<LoadResponse<InitStateType, ChatStateType, MessageStateType>>> {
 
         // Attempt to load data from storage API; ten parallel requests for each save slot:
-        const promises = [];
+        /*const promises = [];
         const saves: (SaveType | undefined)[] = Array(this.SAVE_SLOTS).fill(undefined);
         for (let slot = 0; slot < this.SAVE_SLOTS; slot++) {
             promises.push((async () => {
@@ -249,7 +249,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         } else {
             console.log('No saves loaded from storage API; using existing saves.');
             this.saveAllGames();
-        }
+        }*/
 
         // Remove saves that have no actors or layout (they didn't even initialize an aide); set those indices to undefined
         this.saves = this.saves.map(save => (save && save.actors && Object.keys(save.actors).length > 0 && save.layout) ? save : undefined);
@@ -393,16 +393,15 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         // Update timestamp on current save
         this.currentSave.timestamp = Date.now();
         this.saves[this.saveSlot] = this.currentSave;
-        const chatState = this.buildSaves();
-        this.messenger.updateChatState(chatState);
+        this.messenger.updateChatState(this.buildSaves());
         // Persist to storage API
-        this.storage.set(`saveData_${this.saveSlot}`, this.currentSave).forUser().then(() => {
+       /* this.storage.set(`saveData_${this.saveSlot}`, this.currentSave).forUser().then(() => {
             console.log(`Saved game to slot ${this.saveSlot} in storage API.`)
-        });
+        });*/
     }
 
     saveAllGames() {
-        let updateBuilder: UpdateBuilder | undefined = undefined;
+        /*let updateBuilder: UpdateBuilder | undefined = undefined;
         for (let slot = 0; slot < this.SAVE_SLOTS; slot++) {
             if (updateBuilder === undefined) {
                 updateBuilder = this.storage.set(`saveData_${slot}`, this.saves[slot]).forUser();
@@ -417,7 +416,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             }, (err) => {
                 console.error('Save failed:', err);
             });
-        }
+        }*/
+        this.messenger.updateChatState(this.buildSaves());
     }
 
     deleteSave(slotIndex: number) {
