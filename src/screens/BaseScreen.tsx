@@ -81,7 +81,12 @@ const BaseScreenContent: FC<{ stage: () => Stage }> = ({ stage }) => {
             )}
             
             {/* Unified tooltip bar that renders over all screens */}
-            <TooltipBar message={message} Icon={icon} actionCost={actionCost} />
+            <TooltipBar 
+                message={message} 
+                Icon={icon} 
+                actionCost={actionCost} 
+                onDismiss={clearTooltip}
+            />
         </div>
     );
 };

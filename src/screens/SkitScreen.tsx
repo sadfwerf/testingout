@@ -35,7 +35,10 @@ import {
     VolumeOff,
     CardGiftcard,
     ChevronRight,
-    ChevronLeft
+    ChevronLeft,
+    Edit,
+    Check,
+    Clear
 } from '@mui/icons-material';
 import TypeOut from '../components/TypeOut';
 
@@ -321,6 +324,9 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
     const [mousePosition, setMousePosition] = React.useState<{ x: number; y: number } | null>(null);
     const messageBoxRef = React.useRef<HTMLDivElement>(null);
     const [messageBoxTopVh, setMessageBoxTopVh] = React.useState<number>(isVerticalLayout ? 50 : 60);
+    const [isEditingMessage, setIsEditingMessage] = React.useState<boolean>(false);
+    const [editedMessage, setEditedMessage] = React.useState<string>('');
+    const [originalMessage, setOriginalMessage] = React.useState<string>('');
 
     // Measure message box position
     React.useEffect(() => {
@@ -477,6 +483,11 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
             // Only reset if the index has changed. Also handle audio playback here, to ensure it doesn't redundantly play when setting index to the current index.
             if (prevIndexRef.current !== index) {
                 setFinishTyping(false);
+                // Exit edit mode when navigating to a different message
+                if (isEditingMessage) {
+                    setIsEditingMessage(false);
+                    setOriginalMessage('');
+                }
                 if (currentAudioRef.current) {
                     // Stop any currently playing audio
                     currentAudioRef.current.pause();
@@ -513,6 +524,9 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
     }, [index, skit]);
 
     const next = () => {
+        if (isEditingMessage) {
+            handleConfirmEdit();
+        }
         if (finishTyping) {
             setIndex(prevIndex => Math.min(prevIndex + 1, skit.script.length - 1));
         } else {
@@ -521,6 +535,9 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
     };
 
     const prev = () => {
+        if (isEditingMessage) {
+            handleConfirmEdit();
+        }
         setIndex(prevIndex => Math.max(prevIndex - 1, 0));
     };
 
@@ -736,7 +753,13 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                     <Box sx={{ display: 'flex', gap: isVerticalLayout ? 0.5 : 1.5, alignItems: 'center' }}>
                         {/* Audio toggle button */}
                         <IconButton
-                            onClick={() => { if (stage().getSave().disableTextToSpeech) return; setAudioEnabled(!audioEnabled); }}
+                            onClick={() => { 
+                                if (isEditingMessage) {
+                                    handleConfirmEdit();
+                                }
+                                if (stage().getSave().disableTextToSpeech) return; 
+                                setAudioEnabled(!audioEnabled); 
+                            }}
                             onMouseEnter={() => {
                                 setTooltip(stage().getSave().disableTextToSpeech ? 'Speech generation is disabled in settings' : (audioEnabled ? 'Disable speech audio' : 'Enable speech audio'),
                                     (stage().getSave().disableTextToSpeech || !audioEnabled) ? VolumeOff : VolumeUp);
@@ -760,10 +783,99 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                             {(stage().getSave().disableTextToSpeech || !audioEnabled) ? <VolumeOff fontSize={isVerticalLayout ? 'inherit' : 'small'} sx={{ fontSize: isVerticalLayout ? '16px' : undefined }} /> : <VolumeUp fontSize={isVerticalLayout ? 'inherit' : 'small'} sx={{ fontSize: isVerticalLayout ? '16px' : undefined }} />}
                         </IconButton>
 
+                        {/* Edit mode buttons */}
+                        {!isEditingMessage ? (
+                            <IconButton
+                                onClick={() => {
+                                    handleEnterEditMode();
+                                }}
+                                onMouseEnter={() => {
+                                    setTooltip('Edit message', Edit);
+                                }}
+                                onMouseLeave={() => {
+                                    clearTooltip();
+                                }}
+                                disabled={loading}
+                                size="small"
+                                sx={{
+                                    color: '#88ccff',
+                                    border: '1px solid rgba(136,204,255,0.2)',
+                                    padding: isVerticalLayout ? '4px' : undefined,
+                                    minWidth: isVerticalLayout ? '28px' : undefined,
+                                    transition: 'all 0.3s ease',
+                                    '&:hover': {
+                                        borderColor: 'rgba(136,204,255,0.4)',
+                                        color: '#aaddff',
+                                    },
+                                    '&:disabled': { color: 'rgba(255,255,255,0.3)' }
+                                }}
+                            >
+                                <Edit fontSize={isVerticalLayout ? 'inherit' : 'small'} sx={{ fontSize: isVerticalLayout ? '16px' : undefined }} />
+                            </IconButton>
+                        ) : (
+                            <>
+                                {/* Confirm edit button */}
+                                <IconButton
+                                    onClick={() => {
+                                        handleConfirmEdit();
+                                    }}
+                                    onMouseEnter={() => {
+                                        setTooltip('Confirm changes', Check);
+                                    }}
+                                    onMouseLeave={() => {
+                                        clearTooltip();
+                                    }}
+                                    size="small"
+                                    sx={{
+                                        color: '#00ff88',
+                                        border: '1px solid rgba(0,255,136,0.2)',
+                                        padding: isVerticalLayout ? '4px' : undefined,
+                                        minWidth: isVerticalLayout ? '28px' : undefined,
+                                        transition: 'all 0.3s ease',
+                                        '&:hover': {
+                                            borderColor: 'rgba(0,255,136,0.4)',
+                                            color: '#00ffaa',
+                                        }
+                                    }}
+                                >
+                                    <Check fontSize={isVerticalLayout ? 'inherit' : 'small'} sx={{ fontSize: isVerticalLayout ? '16px' : undefined }} />
+                                </IconButton>
+                                {/* Cancel edit button */}
+                                <IconButton
+                                    onClick={() => {
+                                        handleCancelEdit();
+                                    }}
+                                    onMouseEnter={() => {
+                                        setTooltip('Cancel changes', Clear);
+                                    }}
+                                    onMouseLeave={() => {
+                                        clearTooltip();
+                                    }}
+                                    size="small"
+                                    sx={{
+                                        color: '#ff6b6b',
+                                        border: '1px solid rgba(255,107,107,0.2)',
+                                        padding: isVerticalLayout ? '4px' : undefined,
+                                        minWidth: isVerticalLayout ? '28px' : undefined,
+                                        transition: 'all 0.3s ease',
+                                        '&:hover': {
+                                            borderColor: 'rgba(255,107,107,0.4)',
+                                            color: '#ff5252',
+                                        }
+                                    }}
+                                >
+                                    <Clear fontSize={isVerticalLayout ? 'inherit' : 'small'} sx={{ fontSize: isVerticalLayout ? '16px' : undefined }} />
+                                </IconButton>
+                            </>
+                        )}
+
                         {/* Re-roll button */}
                         <IconButton
                             onClick={() => {
                                 console.log('Re-roll clicked');
+                                if (isEditingMessage) {
+                                    handleConfirmEdit();
+                                }
                                 handleReroll();
                             }}
                             onMouseEnter={() => {
@@ -797,15 +909,15 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                 <Box 
                     sx={{ 
                         minHeight: '4rem', 
-                        cursor: 'pointer',
+                        cursor: isEditingMessage ? 'text' : 'pointer',
                         borderRadius: 1,
                         transition: 'background-color 0.2s ease',
                         '&:hover': {
-                            backgroundColor: 'rgba(255,255,255,0.02)'
+                            backgroundColor: isEditingMessage ? 'transparent' : 'rgba(255,255,255,0.02)'
                         }
                     }}
                     onClick={() => {
-                        if (!loading) {
+                        if (!isEditingMessage && !loading) {
                             if (!finishTyping) {
                                 // Force typing to complete immediately
                                 setFinishTyping(true);
@@ -816,27 +928,59 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                         }
                     }}
                 >
-                    <Typography
-                        variant="body1"
-                        sx={{
-                            fontSize: isVerticalLayout ? 'clamp(0.75rem, 2vw, 1.18rem)' : '1.18rem',
-                            lineHeight: 1.55,
-                            fontFamily: 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial',
-                            color: '#e9fff7',
-                            textShadow: baseTextShadow,
-                        }}
-                    >
-                        {skit.script && skit.script.length > 0 ? (
-                            <TypeOut
-                                key={messageKey}
-                                speed={20}
-                                finishTyping={finishTyping}
-                                onTypingComplete={() => setFinishTyping(true)}
-                            >
-                                {displayMessage}
-                            </TypeOut>
-                        ) : ''}
-                    </Typography>
+                    {isEditingMessage ? (
+                        <TextField
+                            fullWidth
+                            multiline
+                            value={editedMessage}
+                            onChange={(e) => setEditedMessage(e.target.value)}
+                            autoFocus
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    handleConfirmEdit();
+                                } else if (e.key === 'Escape') {
+                                    e.preventDefault();
+                                    handleCancelEdit();
+                                }
+                            }}
+                            sx={{
+                                '& .MuiInputBase-root': {
+                                    fontSize: isVerticalLayout ? 'clamp(0.75rem, 2vw, 1.18rem)' : '1.18rem',
+                                    lineHeight: 1.55,
+                                    fontFamily: 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial',
+                                    color: '#e9fff7',
+                                    backgroundColor: 'rgba(255,255,255,0.05)',
+                                    padding: '8px',
+                                },
+                                '& .MuiInputBase-input': {
+                                    padding: 0,
+                                }
+                            }}
+                        />
+                    ) : (
+                        <Typography
+                            variant="body1"
+                            sx={{
+                                fontSize: isVerticalLayout ? 'clamp(0.75rem, 2vw, 1.18rem)' : '1.18rem',
+                                lineHeight: 1.55,
+                                fontFamily: 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial',
+                                color: '#e9fff7',
+                                textShadow: baseTextShadow,
+                            }}
+                        >
+                            {skit.script && skit.script.length > 0 ? (
+                                <TypeOut
+                                    key={messageKey}
+                                    speed={20}
+                                    finishTyping={finishTyping}
+                                    onTypingComplete={() => setFinishTyping(true)}
+                                >
+                                    {displayMessage}
+                                </TypeOut>
+                            ) : ''}
+                        </Typography>
+                    )}
                 </Box>
 
                 {/* Chat input */}
@@ -975,6 +1119,42 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
         }
     }
 
+    // Handle entering edit mode
+    function handleEnterEditMode() {
+        if (skit.script && skit.script.length > 0 && skit.script[index]) {
+            const currentMessage = skit.script[index].message || '';
+            setOriginalMessage(currentMessage);
+            setEditedMessage(currentMessage);
+            setIsEditingMessage(true);
+        }
+    }
+
+    // Handle confirming edit
+    function handleConfirmEdit() {
+        if (skit.script && skit.script.length > 0 && skit.script[index]) {
+            // Update the message in the skit
+            const stageSkit = stage().getSave().currentSkit;
+            if (stageSkit && stageSkit.script[index]) {
+                stageSkit.script[index].message = editedMessage;
+                // Update display
+                setSkit({...stageSkit});
+                const actors = Object.values(stage().getSave().actors);
+                const currentSpeakerName = stageSkit.script[index]?.speaker?.trim() || '';
+                const matchingActor = findBestNameMatch(currentSpeakerName, actors);
+                setDisplayMessage(formatMessage(editedMessage, matchingActor));
+            }
+        }
+        setIsEditingMessage(false);
+        setOriginalMessage('');
+    }
+
+    // Handle canceling edit
+    function handleCancelEdit() {
+        setEditedMessage(originalMessage);
+        setIsEditingMessage(false);
+        setOriginalMessage('');
+    }
+
     // Handle reroll
     function handleReroll() {
         const stageSkit = stage().getSave().currentSkit;
@@ -1006,6 +1186,11 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
     
     // Handle submission of player's guidance (or blank submit to continue the scene autonomously)
     function handleSubmit(wrapUp: boolean = false) {
+        // Confirm any pending edits before submitting
+        if (isEditingMessage) {
+            handleConfirmEdit();
+        }
+        
         // Truncate the script at the current index and add input text as a player speaker action:
         const stageSkit = stage().getSave().currentSkit;
         if (!stageSkit) return;
@@ -1045,6 +1230,11 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
     }
 
     function handleClose() {
+        // Confirm any pending edits before closing
+        if (isEditingMessage) {
+            handleConfirmEdit();
+        }
+        
         stage().endSkit(setScreenType);
         // Check if aide is still being generated
         if (stage().getGenerateAidePromise()) {
