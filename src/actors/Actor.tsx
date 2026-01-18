@@ -534,7 +534,9 @@ export async function generateActorDecor(actor: Actor, module: Module, stage: St
             `System: The room is a sleek, modern space with clean lines and minimalist furnishings. The walls are adorned with abstract art pieces in bold colors, and the furniture is made of polished metal and glass. A large window offers a stunning view of the stars outside. The overall vibe is futuristic and sophisticated, with a touch of warmth added by soft lighting and plush textiles.\n#END#\n`;
         const decorDescriptionResponse = await stage.generator.textGen({
             prompt: descriptionPrompt,
-            stop: ['#END']
+            stop: ['#END'],
+            min_tokens: 30,
+            max_tokens: 150,
         });
 
         // Generate a decor image based on the generated room description
