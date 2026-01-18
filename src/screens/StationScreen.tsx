@@ -88,7 +88,9 @@ export const StationScreen: FC<StationScreenProps> = ({stage, setScreenType, isV
             // Calculate the maximum cell size that fits in the available space
             // while maintaining the grid dimensions
             const maxCellWidth = rect.width / gridWidth;
-            const maxCellHeight = rect.height / gridHeight;
+            // Account for header bar height (approximately 80px including margins and content)
+            const availableHeight = rect.height - 80;
+            const maxCellHeight = availableHeight / gridHeight;
             
             // Use the smaller of the two to ensure the entire grid fits
             const cellSizePx = Math.min(maxCellWidth, maxCellHeight);
