@@ -921,7 +921,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         const skitsToProcess: SkitData[] = [];
         if (save.timeline) {
             save.timeline.forEach(entry => {
-                if (entry.skit && entry.skit.endNewModule) {
+                if (entry.skit && entry.skit.endNewModule && this.getSave()?.customModules?.[entry.skit.endNewModule.id] === undefined) {
                     skitsToProcess.push(entry.skit);
                 }
             });
