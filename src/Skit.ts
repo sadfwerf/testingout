@@ -445,11 +445,11 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                     `CHARACTER NAME: They nod in agreement, "If there's any dialogue at all, the entry must be attributed to the character speaking."\n` +
                     `NARRATOR: [CHARACTER NAME EXPRESSES RELIEF] Descriptive content or other scene events occurring around you, the player, can be attributed to NARRATOR. Dialogue cannot be included in NARRATOR entries.\n` +
                     `${stage.getSave().player.name.toUpperCase()}: "Hey, Character Name," I greet them warmly. I'm the player, and my entries use first-person narrative voice, while all other skit entries use second-person to refer to me.\n` +
-                    `[PAUSE]\n\n` +
+                    `\n\n` +
                 `Example Character Movement Format:\n` +
                     `System: CHARACTER NAME: [CHARACTER NAME moves to HERE] Character Name enters the room with a wave.\n` +
                     `CHARACTER NAME: Character greets you, "Hey; just checking in. I was absent a moment ago, so a [x moves to y] tag was necessary before I could speak in the scene. I'll be next door if you need anything."\n` +
-                    `NARRATOR: [CHARACTER NAME moves to MODULE NAME] Character Name ducks out with a smile. You hear their boots fade away down the corridor beyond.\n[PAUSE]\n\n` +
+                    `NARRATOR: [CHARACTER NAME moves to MODULE NAME] Character Name ducks out with a smile. You hear their boots fade away down the corridor beyond.\n\n` +
                 `Example Character Departure from PARC Format:\n` +
                     `System: CHARACTER NAME: They sigh profoundly. "Well, I suppose this is goodbye for now." They wave as they somberly step through the bulkhead.\n` +
                     `NARRATOR: [CHARACTER NAME moves to FACTION NAME] You watch on-screen as Character Name's shuttle detaches from the PARC and disappears into the stars.\n` +
@@ -470,7 +470,6 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                 `\n\nTag Instruction:\n` +
                 `  Embedded within this script, you may employ special tags to trigger various game mechanics. ` +
                 `\n\n  Emotion tags ("[CHARACTER NAME EXPRESSES JOY]") should be used to indicate visible emotional shifts in a character's appearance using a single-word emotion name. ` +
-                `\n\n  A [PAUSE] tag can be used to signal a suspension of this excerpt without fully ending the scene, in case the three-to-five-entry quota has already been met. ` +
                 `\n\n  A Character movement tag ("[CHARACTER NAME moves to LOCATION]") must be used when an Absent Character enters the scene. ` +
                 `\n\n  Character movement tags ("[CHARACTER NAME moves to LOCATION]") must also be included when a character leaves the scene or moves to a different module on the station. ` +
                 `\n\n  Character movement tags ("[CHARACTER NAME moves to LOCATION]") are also used to move a character to another faction, abstractly representing any faction mission or time away. ` +
@@ -495,7 +494,7 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                 min_tokens: 10,
                 max_tokens: 500,
                 include_history: true,
-                stop: ['[PAUSE]']
+                stop: []
             });
             if (response && response.result && response.result.trim().length > 0) {
                 // First, detect and parse any tags that may be embedded in the response.
