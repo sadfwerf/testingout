@@ -310,7 +310,7 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
             `Available Voices:\n` +
             Object.entries(VOICE_MAP).map(([voiceId, voiceDesc]) => '  - ' + voiceId + ': ' + voiceDesc).join('\n') +
             `Instructions: After carefully considering this description and the rules provided, generate a concise breakdown for a character based upon these details in the following strict format:\n` +
-            `System: NAME: Their simple name\n` +
+            `NAME: Their simple name\n` +
             `DESCRIPTION: A vivid description of the character's physical appearance, attire, and any distinguishing features.\n` +
             `PROFILE: A brief summary of the character's key personality traits and behaviors.\n` +
             `STYLE: A concise description of the character's sense of overall style, mood, interests, or aesthetic, to be applied to the way they decorate their space.\n` +
@@ -536,9 +536,9 @@ export async function generateActorDecor(actor: Actor, module: Module, stage: St
         // Generate a decor prompt for this actor for this space, based on the module's description and the actor's style
         const descriptionPrompt = `Generate an updated description of this sci-fi room aboard a space station: ${module.getAttribute('name')}.\n` +
             `The current description is: ${module.getAttribute('description')}.\n` +
-            `At the "System:" prompt, output an updated description of this room, including additional details for furnishings and decorations to help the description match this aesthetic: ${actor.style}.\n` +
+            `Output an updated description of this room, including additional details for furnishings and decorations to help the description match this aesthetic: ${actor.style}.\n` +
             `Example Response:\n` +
-            `System: The room is a sleek, modern space with clean lines and minimalist furnishings. The walls are adorned with abstract art pieces in bold colors, and the furniture is made of polished metal and glass. A large window offers a stunning view of the stars outside. The overall vibe is futuristic and sophisticated, with a touch of warmth added by soft lighting and plush textiles.\n#END#\n`;
+            `The room is a sleek, modern space with clean lines and minimalist furnishings. The walls are adorned with abstract art pieces in bold colors, and the furniture is made of polished metal and glass. A large window offers a stunning view of the stars outside. The overall vibe is futuristic and sophisticated, with a touch of warmth added by soft lighting and plush textiles.\n#END#\n`;
         const decorDescriptionResponse = await stage.generator.textGen({
             prompt: descriptionPrompt,
             stop: ['#END'],

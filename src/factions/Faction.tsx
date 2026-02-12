@@ -143,7 +143,7 @@ export async function loadReserveFaction(fullPath: string, stage: Stage): Promis
             `The Original Details may not lend themselves directly to a faction, so creative interpretation is encouraged; pull from and lean into the dominant themes found in the details. ` +
             `\n\nOriginal Details about ${data.name}:\n${data.personality}` +
             `\n\nInstructions: After carefully considering this description, generate a concise breakdown for a faction based upon these details in the following strict format:\n` +
-            `System: NAME: The faction's simple name\n` +
+            `NAME: The faction's simple name\n` +
             `DESCRIPTION: A vivid description of the faction's purpose, values, and role in the galaxy.\n` +
             `ROLES: A list of simple job roles that this faction may offer to recruit or purchase from the PARC.\n` +
             `VISUALSTYLE: A concise description of the faction's aesthetic, architectural style, uniform/clothing design, and overall visual identity.\n` +

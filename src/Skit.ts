@@ -389,7 +389,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
                     const moduleDescription = module ? (module.type === 'quarters' && moduleOwner ? `${moduleOwner.name}'s quarters` : `the ${module.getAttribute('name')}`) : 'an unknown location';
                     return ((!v.skit.summary || index == pastEvents.length - 1) ?
                         (`\n\n  Script of Scene in ${moduleDescription} (${stage.getSave().day - v.day}) days ago:\n` +
-                        `System: ${buildScriptLog(v.skit)}`) :
+                        `${buildScriptLog(v.skit)}`) :
                         (`\n\n  Summary of scene in ${moduleDescription} (${stage.getSave().day - v.day}) days ago:\n` + v.skit.summary)
                         )
                 } else {
@@ -438,7 +438,7 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
         try {
             const fullPrompt = generateSkitPrompt(skit, stage, 5 + retries * 5, // Start with lots of history, reducing each iteration.
                 `Example Script Format:\n` +
-                    `System: CHARACTER NAME: Character Name does some actions in prose; for example, they may be waving to you, the player. They say, "My dialogue is in quotation marks."\n` +
+                    `CHARACTER NAME: Character Name does some actions in prose; for example, they may be waving to you, the player. They say, "My dialogue is in quotation marks."\n` +
                     `CHARACTER NAME: [CHARACTER NAME EXPRESSES PRIDE] "A character can have two entries in a row, if they have more to say or do or it makes sense to break up a lot of activity."\n` +
                     `ANOTHER CHARACTER NAME: [ANOTHER CHARACTER NAME EXPRESSES JOY][CHARACTER NAME EXPRESSES SURPRISE] ` +
                         `"Other character expressions can update in each other's entries—say, if they're reacting to something the speaker says—, but only one character can speak per entry."\n` +
@@ -447,20 +447,20 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                     `${stage.getSave().player.name.toUpperCase()}: "Hey, Character Name," I greet them warmly. I'm the player, and my entries use first-person narrative voice, while all other skit entries use second-person to refer to me.\n` +
                     `\n\n` +
                 `Example Character Movement Format:\n` +
-                    `System: CHARACTER NAME: [CHARACTER NAME moves to HERE] Character Name enters the room with a wave.\n` +
+                    `CHARACTER NAME: [CHARACTER NAME moves to HERE] Character Name enters the room with a wave.\n` +
                     `CHARACTER NAME: Character greets you, "Hey; just checking in. I was absent a moment ago, so a [x moves to y] tag was necessary before I could speak in the scene. I'll be next door if you need anything."\n` +
                     `NARRATOR: [CHARACTER NAME moves to MODULE NAME] Character Name ducks out with a smile. You hear their boots fade away down the corridor beyond.\n\n` +
                 `Example Character Departure from PARC Format:\n` +
-                    `System: CHARACTER NAME: They sigh profoundly. "Well, I suppose this is goodbye for now." They wave as they somberly step through the bulkhead.\n` +
+                    `CHARACTER NAME: They sigh profoundly. "Well, I suppose this is goodbye for now." They wave as they somberly step through the bulkhead.\n` +
                     `NARRATOR: [CHARACTER NAME moves to FACTION NAME] You watch on-screen as Character Name's shuttle detaches from the PARC and disappears into the stars.\n` +
                     `[SUMMARY: Character Name has departed the PARC, on loan to FACTION NAME for (mission description here).]\n\n` +
                 (skit.script.length > 0 ? (`Example Summary Script Format:\n` +
-                    `System: CHARACTER NAME: [CHARACTER NAME EXPRESSES OPTIMISM] Character Name smiles at you. "I think we made real progress here today. Thanks!"\n` +
+                    `CHARACTER NAME: [CHARACTER NAME EXPRESSES OPTIMISM] Character Name smiles at you. "I think we made real progress here today. Thanks!"\n` +
                     `NARRATOR: There's a moment of real connection between the both of you. Something the PARC could use more of.\n` +
                     `[SUMMARY: This moment of shared commaraderie has left Character Name hopeful about their future aboard the PARC.]\n\n`) : '') +
-                `Current Scene Script Log to Continue:\nSystem: ${buildScriptLog(skit)}` +
+                `Current Scene Script Log to Continue:\n${buildScriptLog(skit)}` +
                 `\n\nPrimary Instruction:\n` +
-                `  At the "System:" prompt, ${skit.script.length == 0 ? 'produce the initial moments of a scene (perhaps joined in medias res)' : 'extend or conclude the current scene script'} with three to five entries, ` +
+                `  ${skit.script.length == 0 ? 'Produce the initial moments of a scene (perhaps joined in medias res)' : 'Extend or conclude the current scene script'} with three to five entries, ` +
                 `based upon the Premise and the specified Scene Prompt. Primarily involve the Present Characters, although Absent Characters may be moved to this location using appropriate tags. ` +
                 `The script should consider characters' stats, relationships, past events, and the station's stats—among other factors—to craft a compelling scene. ` +
                 `\n\n  Follow the structure of the strict Example Script formatting above: ` +
@@ -684,7 +684,7 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
 
                     ttsPromises.push((async () => {
                         const analysisPrompt = generateSkitPrompt(skit, stage, 0,
-                            `Scene Script for Analysis:\nSystem: ${buildScriptLog(skit, scriptEntries)}` +
+                            `Scene Script for Analysis:\n${buildScriptLog(skit, scriptEntries)}` +
                             `\n\nInstruction:\nAnalyze the preceding scene script and output formatted tags in brackets, identifying the following categorical changes to be incorporated into the game as a result of events in this scene. ` +
                             `\n` +
                             `\n#Character Stat Changes:#\n` +
@@ -1015,7 +1015,7 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
 
 export async function updateCharacterArc(stage: Stage, skit: SkitData, actor: Actor): Promise<void> {
     const analysisPrompt = generateSkitPrompt(skit, stage, 0,
-        `Scene Script for Analysis:\nSystem: ${buildScriptLog(skit)}` +
+        `Scene Script for Analysis:\n${buildScriptLog(skit)}` +
         `${actor.name}'s Current Character Arc:\n${actor.characterArc || 'No established character arc.'}` +
         `\n\nInstruction:\nAnalyze the preceding scene script ${actor.name}'s character arc, then output a revised character arc paragraph that reflects any significant developments from the latest scene script. ` +
         `The character arc should be a concise summary of the character's growth, challenges, and changes experienced so far in the PARC. ` +
@@ -1023,8 +1023,8 @@ export async function updateCharacterArc(stage: Stage, skit: SkitData, actor: Ac
         `The output should be a single paragraph, maintaining the same tone and style as the existing character arc.` +
         `If there are no significant developments, simply repeat the existing character arc without changes. ` +
         `\n\nFull Examples:\n` +
-        `System: Revised Character Arc: John Smith has yet to find their footing in the PARC; they can't seem to make friends with the other patients—beyond the StationAide—, and the director hasn't proven trustworthy.\n[END]\n` +
-        `System: Revised Character Arc: Jane Doe has started to open up to others, forming tentative friendships. She feels a bit out of her depth in her role as Custodian, but appreciates the trust the director has placed in her and hopes to prove that faith justified.\n[END]\n`);
+        `Revised Character Arc: John Smith has yet to find their footing in the PARC; they can't seem to make friends with the other patients—beyond the StationAide—, and the director hasn't proven trustworthy.\n[END]\n\n` +
+        `Revised Character Arc: Jane Doe has started to open up to others, forming tentative friendships. She feels a bit out of her depth in her role as Custodian, but appreciates the trust the director has placed in her and hopes to prove that faith justified.\n[END]\n`);
     
     const requestAnalysis = await stage.generator.textGen({
         prompt: analysisPrompt,
