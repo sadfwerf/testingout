@@ -74,11 +74,11 @@ export const FactionDetailScreen: FC<FactionDetailScreenProps> = ({ faction, sta
         faction.themeColor = editedFaction.themeColor;
         faction.themeFont = editedFaction.themeFont;
         faction.reputation = editedFaction.reputation;
-        if (!faction.active && faction.reputation < 0 && !editedFaction.cutTies) {
+        if (!faction.active && faction.reputation <= 0 && !editedFaction.cutTies) {
             faction.reputation = 1;
             faction.active = true;
-        } else if (faction.reputation >= 0 && editedFaction.cutTies) {
-            faction.reputation = -1;
+        } else if (faction.reputation > 0 && editedFaction.cutTies) {
+            faction.reputation = 0;
             faction.active = false;
         }
         faction.backgroundImageUrl = editedFaction.backgroundImageUrl;
