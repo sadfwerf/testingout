@@ -74,6 +74,10 @@ export const FactionDetailScreen: FC<FactionDetailScreenProps> = ({ faction, sta
         faction.themeColor = editedFaction.themeColor;
         faction.themeFont = editedFaction.themeFont;
         faction.reputation = editedFaction.reputation;
+        if (!faction.active && editedFaction.active) {
+            // If activating, set reputation to 0 if it was -1 (cut-ties)
+            faction.reputation = faction.reputation === -1 ? 0 : faction.reputation;
+        }
         faction.active = editedFaction.active;
         faction.backgroundImageUrl = editedFaction.backgroundImageUrl;
 
@@ -294,6 +298,32 @@ export const FactionDetailScreen: FC<FactionDetailScreenProps> = ({ faction, sta
                                             onChange={(e) => handleInputChange('name', e.target.value)}
                                             placeholder="Faction name"
                                         />
+                                    </div>
+
+                                    {/* Active toggle */}
+                                    <div>
+                                        <label
+                                            style={{
+                                                display: 'block',
+                                                color: '#00ff88',
+                                                fontSize: '14px',
+                                                fontWeight: 'bold',
+                                                marginBottom: '8px',
+                                            }}
+                                        >
+                                            Active
+                                        </label>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={!!editedFaction.active}
+                                                onChange={(e) => handleInputChange('active', e.target.checked)}
+                                                id="faction-active-toggle"
+                                            />
+                                            <label htmlFor="faction-active-toggle" style={{ color: '#e0f0ff', fontSize: '14px' }}>
+                                                {editedFaction.active ? 'Active' : 'Inactive'}
+                                            </label>
+                                        </div>
                                     </div>
 
                                     {/* Description */}

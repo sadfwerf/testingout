@@ -858,7 +858,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                     ))}
 
                                     {/* Existing write-in tags (editable) */}
-                                    {stage().betaMode && settings.writeInTags.map((tag, idx) => (
+                                    {settings.writeInTags.map((tag, idx) => (
                                         <motion.div
                                             key={`writein-${idx}`}
                                             whileHover={{ scale: 1.02 }}
@@ -919,7 +919,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                     ))}
 
                                     {/* New write-in input (always present as trailing blank) */}
-                                    {stage().betaMode && <motion.div
+                                    <motion.div
                                         key="writein-new"
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
@@ -946,7 +946,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                             flexShrink: 0,
                                         }}>×</div>
                                         <input
-                                            placeholder="Add custom banned tag..."
+                                            placeholder="Ban a tag..."
                                             value={newWriteIn}
                                             onChange={(e) => setNewWriteIn(e.target.value)}
                                             onKeyDown={(e) => {
@@ -965,7 +965,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                                 width: '100%'
                                             }}
                                         />
-                                    </motion.div>}
+                                    </motion.div>
                                 </div>
                             </div>
 
