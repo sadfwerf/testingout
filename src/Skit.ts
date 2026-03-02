@@ -692,307 +692,328 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                 const factionChanges: { [actorId: string]: string } = {};
                 const roleChanges: { [actorId: string]: string } = {};
                 // If this response contains an endScene, we will analyze the script for stat changes or other game mechanics to be applied. Add this to the ttsPromises to run in parallel.
-                if (endScene) {
-                    console.log('Scene end predicted; preparing to analyze for stat changes.');
+                if (endScene || stage.betaMode) {
+                    console.log('Perform additional analysis.');
 
                     ttsPromises.push((async () => {
-                        const analysisPrompt = generateSkitPrompt(skit, stage, 0,
-                            `Scene Script for Analysis:\n${buildScriptLog(skit, scriptEntries)}` +
-                            `\n\nInstruction:\nAnalyze the preceding scene script and output formatted tags in brackets, identifying the following categorical changes to be incorporated into the game as a result of events in this scene. ` +
-                            `\n` +
-                            `\n#Character Stat Changes:#\n` +
-                            `Identify any changes to character stats implied by the scene. For each change, output a line in the following format:\n` +
-                            `[<characterName>: <stat> +<value>(, ...)]` +
-                            `Where <stat> is the name of the stat to be changed, and <value> is the amount to increase or decrease the stat by (positive or negative). ` +
-                            `Multiple stat changes can be included in a single tag, separated by commas. Similarly, multiple character tags can be provided in the output.` +
-                            `Full Examples:\n` +
-                            `[${Object.values(stage.getSave().actors)[0].name}: brawn +1, charm +2]\n` +
-                            `[${Object.values(stage.getSave().actors)[0].name}: lust -1]\n` +
-                            
-                            `\n#Station Stat Changes:#\n` +
-                            `Identify any changes to PARC station stats implied or indicated by the scene. Ignore lines from the scene that simply illustrate the existing stats, ` +
-                            `and instead focus on changes or developments in the PARC's situation or operations. For each change, output a line in the following format:\n` +
-                            `[STATION: <stat> +<value>(, ...)]` +
-                            `Where <stat> is the name of the station stat to be changed, and <value> is the amount to increase or decrease the stat by (positive or negative). ` +
-                            `Multiple stat changes can be included in a single tag, separated by commas.` +
-                            `Full Examples:\n` +
-                            `[STATION: Systems +2, Comfort +1]\n` +
-                            `[STATION: Security -1]\n` +
+                        if (stage.betaMode) {
+                            const endPrompt = generateSkitPrompt(skit, stage, 0,
+                                `Scene Script for Analysis:\n${buildScriptLog(skit, scriptEntries)}` +
+                                `\n\nInstruction:\nAnalyze the preceding scene script and determine whether the final moments make for a suitable ending to the scene.` +
+                                `If the scene feels complete, output "[END SCENE]" followed by a "[SUMMARY: ...]" tag with a brief summary of the entire scene's key events or developments. ` +
+                                `If the scene does not feel complete, output "[CONTINUE SCENE]" and provide a brief explanation of what is missing or what could be developed further to reach a satisfying conclusion. `);
+                            const endResponse = await stage.generator.textGen({
+                                prompt: endPrompt,
+                                min_tokens: 1,
+                                max_tokens: 150,
+                                include_history: true,
+                                stop: ['#END#']
+                            });
+                            if (endResponse && endResponse.result) {
+                                // Strip double-asterisks. TODO: Remove this once other model issue is resolved.
+                                text = text.replace(/\*\*/g, '');
 
-                            `\n#Faction Reputation Changes:#\n` +
-                            `Identify any changes to the PARC's reputation with factions implied by the scene. For each change, output a line in the following format:\n` +
-                            `[FACTION: <factionName> +<value>]\n` +
-                            `Where <factionName> is the name of the faction with whom the PARC's reputation is changing, and <value> is the amount to increase or decrease the reputation by (positive or negative). ` +
-                            `Reputation is a value between 1 and 10, representing the faction's opinion of the PARC, and changes are incremental. If the faction is cutting ties with the PARC, provide a large negative value. ` +
-                            `Multiple faction tags can be provided in the output if, for instance, improving in the esteem of one faction inherently reduces the opinion of a rival.` +
-                            `Full Examples:\n` +
-                            `[FACTION: Stellar Concord +1]\n` +
-                            `[FACTION: Shadow Syndicate -2]\n` +
-
-                            `\n#Character Faction Change:#\n` +
-                            `If a character has changed faction affiliations in the scene, output a line in the following format:\n` +
-                            `[CHARACTER NAME: JOINED <factionName or PARC>]\n` +
-                            `Where <factionName or PARC> is the name of the faction the character has joined, or "PARC" if they have left a faction to join the station itself. ` +
-                            `Full Examples:\n` +
-                            `[${Object.values(stage.getSave().actors)[0].name}: JOINED Stellar Concord]\n` +
-                            `[${Object.values(stage.getSave().actors)[0].name}: JOINED PARC]` +
-                            `\n\nThis tag indicates an official change in allegiance/affiliation/ownership/possession of the named character. ` +
-                            `Consider this tag when the script depicts: ` +
-                            `\n - A patient taking a permanent position with a faction.` +
-                            `\n - A faction representative defecting to the PARC.` +
-                            `\n - A character being formally recruited or dismissed.` +
-                            `\n - A character being sold to or imprisoned by a faction.\n` +
-
-                            `\n#Character Role Change:#\n` +
-                            `If a character's role on the station changes as a result of this scene (e.g., a patient has been assigned to a staff position), output a line in the following format:\n` +
-                            `[CHARACTER NAME: ROLE <roleName>]\n` +
-                            `Where <roleName> is the name of the new role assigned to the character. ` +
-                            `Full Example:\n` +
-                            `[${Object.values(stage.getSave().actors)[0].name}: ROLE Liaison]\n` +
-                            `[${Object.values(stage.getSave().actors)[0].name}: ROLE None]\n` +
-                            `The role name must directly match an existing role defined by the station's current modules (or "None," if a character's role is being removed by this tag).\n` +
-
-                            `\n#Character Movement/Departure:#\n` +
-                            `If the scene depicts or implies that a character has departed the PARC or moved to a different faction (or such departure appears imminent), include final movement tags here.` +
-                            `[CHARACTER NAME moves to <module name|faction name>]\n` +
-                            `Full Example:\n` +
-                            `[${Object.values(stage.getSave().actors)[0].name} moves to Stellar Concord]\n` +
-                            `[${Object.values(stage.getSave().actors)[0].name} moves to Comms]\n` +
-                            `These tags ensure that the gamestate location data reflects the scene's events; it is especially important to include movement tags for any characters leaving on or returning from missions; ` +
-                            `remember that moving "to" a faction is an abstract location representing a task on that faction's behalf, whether that task is at the faction location or elsewhere entirely.` +
-
-                            `\n#New Module Definition:#\n` +
-                            `If the scene results in the conception of a new module for the station ` +
-                            `(e.g., a character requests a specific new space or a new role is being established, which requires a dedicated workspace), ` +
-                            `this tag can be used to define the proposed module name and associated role:\n` +
-                            `[NEW MODULE: <moduleName> | ROLE <roleName> | DESCRIPTION <briefDescription>]\n` +
-                            `Full Example:\n` +
-                            `[NEW MODULE: MedBay | ROLE Medic | DESCRIPTION A small medical bay equipped for basic treatments and check-ups.]\n` +
-                            `[NEW MODULE: Lounge | ROLE Social Coordinator | DESCRIPTION A comfortable lounge area for relaxation and socialization among staff and patients.]\n` +
-                            `This tag allows the game engine to create new modules dynamically based on scene events, expanding the station's capabilities and accommodating character roles as needed.\n` +
-
-                            (!summary ? 
-                                `\n#Summarize Scene:#\n` +
-                                `[SUMMARY: A brief synopsis of this scene's key events.]` +
-                                `The essential Summary tag must be used to describe the scene's key events.`
-                                : ''
-                            ) +
-
-                            `\n\Core Instruction:\n` +
-                            `Closely analyze the scene and output all suitable tags in this response. Stat changes should be a fair reflection of the scene's direct or implied events. ` +
-                            `Bear in mind the somewhat abstract nature of character and station stats when determining reasonable changes. ` +
-                            `All stats (station and character) exist on a scale of 1-10, with 1 being the lowest and 10 being the highest possible value; ` +
-                            `typically, changes should be minor (+/- 1 or 2) at a time, unless something dramatic occurs. ` +
-                            `If the scene presents no appreciable change, or all relevant tags have been presented, the response may be ended early with [END]. \n\n`
-                        );
-                        
-                        const requestAnalysis = await stage.generator.textGen({
-                            prompt: analysisPrompt, // + (stage.betaMode ? '%%%TOOLS%%%\n\nMake tool calls for appropriate stat changes.\n\n' : ''),
-                            min_tokens: 50,
-                            max_tokens: (summary ? 400 : 600), //stage.betaMode ? 1500 : (summary ? 300 : 500),
-                            include_history: true,
-                            stop: ['[END]'],
-                        });
-
-                        console.log('Request analysis response:', requestAnalysis?.result);
-                        if (requestAnalysis && requestAnalysis.result) {
-                            const analysisText = requestAnalysis.result;
-
-                            // Process analysisText for stat changes
-                            const lines = analysisText.split('\n');
-                            for (const line of lines) {
-                                // Strip double-asterisks. TODO: Remove replace() (keep trim()) once other model issue is resolved.
-                                const trimmed = line.replace(/\*\*/g, '').trim();
-                                if (!trimmed || !trimmed.startsWith('[')) continue;
-
-                                if (trimmed.toUpperCase().startsWith('[SUMMARY:')) {
-                                    const summaryMatch = /\[SUMMARY:\s*([^\]]+)\]/i.exec(trimmed);
+                                if (endResponse.result.includes('[END SCENE]')) {
+                                    endScene = true;
+                                    const summaryMatch = /\[SUMMARY:\s*([^\]]+)\]/i.exec(endResponse.result);
                                     summary = summaryMatch ? summaryMatch[1].trim() : undefined;
-                                    console.log('Extracted summary from analysis:', summary);
-                                    continue;
+                                    console.log('Model determined scene should end. Summary:', summary);
                                 }
+                            }
+                        }
 
-                                // Process faction reputation tags: [FACTION: <factionName> +<value>]
-                                if (trimmed.toUpperCase().startsWith('[FACTION:')) {
-                                    console.log('Processing faction reputation tag:', trimmed);
-                                    const factionTagRegex = /\[FACTION:\s*([^+\-]+)\s*([+\-]\s*\d+)\]/i;
-                                    const factionMatch = factionTagRegex.exec(trimmed);
-                                    if (factionMatch) {
-                                        const factionNameRaw = factionMatch[1].trim();
-                                        const reputationChange = parseInt(factionMatch[2].replace(/\s+/g, ''), 10) || 0;
-                                        
-                                        // Find matching faction using findBestNameMatch
-                                        const allFactions = Object.values(stage.getSave().factions);
-                                        const matchedFaction = findBestNameMatch(factionNameRaw, allFactions);
-                                        
-                                        if (matchedFaction && reputationChange !== 0) {
-                                            if (!statChanges['FACTION']) statChanges['FACTION'] = {};
-                                            statChanges['FACTION'][matchedFaction.id] = (statChanges['FACTION'][matchedFaction.id] || 0) + reputationChange;
-                                            console.log(`Adding faction reputation change for ${matchedFaction.name}: ${reputationChange > 0 ? '+' : ''}${reputationChange}`);
-                                        }
+                        if (endScene) {
+                            const analysisPrompt = generateSkitPrompt(skit, stage, 0,
+                                `Scene Script for Analysis:\n${buildScriptLog(skit, scriptEntries)}` +
+                                `\n\nInstruction:\nAnalyze the preceding scene script and output formatted tags in brackets, identifying the following categorical changes to be incorporated into the game as a result of events in this scene. ` +
+                                `\n` +
+                                `\n#Character Stat Changes:#\n` +
+                                `Identify any changes to character stats implied by the scene. For each change, output a line in the following format:\n` +
+                                `[<characterName>: <stat> +<value>(, ...)]` +
+                                `Where <stat> is the name of the stat to be changed, and <value> is the amount to increase or decrease the stat by (positive or negative). ` +
+                                `Multiple stat changes can be included in a single tag, separated by commas. Similarly, multiple character tags can be provided in the output.` +
+                                `Full Examples:\n` +
+                                `[${Object.values(stage.getSave().actors)[0].name}: brawn +1, charm +2]\n` +
+                                `[${Object.values(stage.getSave().actors)[0].name}: lust -1]\n` +
+
+                                `\n#Station Stat Changes:#\n` +
+                                `Identify any changes to PARC station stats implied or indicated by the scene. Ignore lines from the scene that simply illustrate the existing stats, ` +
+                                `and instead focus on changes or developments in the PARC's situation or operations. For each change, output a line in the following format:\n` +
+                                `[STATION: <stat> +<value>(, ...)]` +
+                                `Where <stat> is the name of the station stat to be changed, and <value> is the amount to increase or decrease the stat by (positive or negative). ` +
+                                `Multiple stat changes can be included in a single tag, separated by commas.` +
+                                `Full Examples:\n` +
+                                `[STATION: Systems +2, Comfort +1]\n` +
+                                `[STATION: Security -1]\n` +
+
+                                `\n#Faction Reputation Changes:#\n` +
+                                `Identify any changes to the PARC's reputation with factions implied by the scene. For each change, output a line in the following format:\n` +
+                                `[FACTION: <factionName> +<value>]\n` +
+                                `Where <factionName> is the name of the faction with whom the PARC's reputation is changing, and <value> is the amount to increase or decrease the reputation by (positive or negative). ` +
+                                `Reputation is a value between 1 and 10, representing the faction's opinion of the PARC, and changes are incremental. If the faction is cutting ties with the PARC, provide a large negative value. ` +
+                                `Multiple faction tags can be provided in the output if, for instance, improving in the esteem of one faction inherently reduces the opinion of a rival.` +
+                                `Full Examples:\n` +
+                                `[FACTION: Stellar Concord +1]\n` +
+                                `[FACTION: Shadow Syndicate -2]\n` +
+
+                                `\n#Character Faction Change:#\n` +
+                                `If a character has changed faction affiliations in the scene, output a line in the following format:\n` +
+                                `[CHARACTER NAME: JOINED <factionName or PARC>]\n` +
+                                `Where <factionName or PARC> is the name of the faction the character has joined, or "PARC" if they have left a faction to join the station itself. ` +
+                                `Full Examples:\n` +
+                                `[${Object.values(stage.getSave().actors)[0].name}: JOINED Stellar Concord]\n` +
+                                `[${Object.values(stage.getSave().actors)[0].name}: JOINED PARC]` +
+                                `\n\nThis tag indicates an official change in allegiance/affiliation/ownership/possession of the named character. ` +
+                                `Consider this tag when the script depicts: ` +
+                                `\n - A patient taking a permanent position with a faction.` +
+                                `\n - A faction representative defecting to the PARC.` +
+                                `\n - A character being formally recruited or dismissed.` +
+                                `\n - A character being sold to or imprisoned by a faction.\n` +
+
+                                `\n#Character Role Change:#\n` +
+                                `If a character's role on the station changes as a result of this scene (e.g., a patient has been assigned to a staff position), output a line in the following format:\n` +
+                                `[CHARACTER NAME: ROLE <roleName>]\n` +
+                                `Where <roleName> is the name of the new role assigned to the character. ` +
+                                `Full Example:\n` +
+                                `[${Object.values(stage.getSave().actors)[0].name}: ROLE Liaison]\n` +
+                                `[${Object.values(stage.getSave().actors)[0].name}: ROLE None]\n` +
+                                `The role name must directly match an existing role defined by the station's current modules (or "None," if a character's role is being removed by this tag).\n` +
+
+                                `\n#Character Movement/Departure:#\n` +
+                                `If the scene depicts or implies that a character has departed the PARC or moved to a different faction (or such departure appears imminent), include final movement tags here.` +
+                                `[CHARACTER NAME moves to <module name|faction name>]\n` +
+                                `Full Example:\n` +
+                                `[${Object.values(stage.getSave().actors)[0].name} moves to Stellar Concord]\n` +
+                                `[${Object.values(stage.getSave().actors)[0].name} moves to Comms]\n` +
+                                `These tags ensure that the gamestate location data reflects the scene's events; it is especially important to include movement tags for any characters leaving on or returning from missions; ` +
+                                `remember that moving "to" a faction is an abstract location representing a task on that faction's behalf, whether that task is at the faction location or elsewhere entirely.` +
+
+                                `\n#New Module Definition:#\n` +
+                                `If the scene results in the conception of a new module for the station ` +
+                                `(e.g., a character requests a specific new space or a new role is being established, which requires a dedicated workspace), ` +
+                                `this tag can be used to define the proposed module name and associated role:\n` +
+                                `[NEW MODULE: <moduleName> | ROLE <roleName> | DESCRIPTION <briefDescription>]\n` +
+                                `Full Example:\n` +
+                                `[NEW MODULE: MedBay | ROLE Medic | DESCRIPTION A small medical bay equipped for basic treatments and check-ups.]\n` +
+                                `[NEW MODULE: Lounge | ROLE Social Coordinator | DESCRIPTION A comfortable lounge area for relaxation and socialization among staff and patients.]\n` +
+                                `This tag allows the game engine to create new modules dynamically based on scene events, expanding the station's capabilities and accommodating character roles as needed.\n` +
+
+                                `\n\Core Instruction:\n` +
+                                `Closely analyze the scene and output all suitable tags in this response. Stat changes should be a fair reflection of the scene's direct or implied events. ` +
+                                `Bear in mind the somewhat abstract nature of character and station stats when determining reasonable changes. ` +
+                                `All stats (station and character) exist on a scale of 1-10, with 1 being the lowest and 10 being the highest possible value; ` +
+                                `typically, changes should be minor (+/- 1 or 2) at a time, unless something dramatic occurs. ` +
+                                `If the scene presents no appreciable change, or all relevant tags have been presented, the response may be ended early with [END]. \n\n`
+                            );
+
+                            const requestAnalysis = await stage.generator.textGen({
+                                prompt: analysisPrompt, // + (stage.betaMode ? '%%%TOOLS%%%\n\nMake tool calls for appropriate stat changes.\n\n' : ''),
+                                min_tokens: 50,
+                                max_tokens: (summary ? 400 : 600), //stage.betaMode ? 1500 : (summary ? 300 : 500),
+                                include_history: true,
+                                stop: ['[END]'],
+                            });
+
+                            console.log('Request analysis response:', requestAnalysis?.result);
+                            if (requestAnalysis && requestAnalysis.result) {
+                                const analysisText = requestAnalysis.result;
+
+                                // Process analysisText for stat changes
+                                const lines = analysisText.split('\n');
+                                for (const line of lines) {
+                                    // Strip double-asterisks. TODO: Remove replace() (keep trim()) once other model issue is resolved.
+                                    const trimmed = line.replace(/\*\*/g, '').trim();
+                                    if (!trimmed || !trimmed.startsWith('[')) continue;
+
+                                    if (trimmed.toUpperCase().startsWith('[SUMMARY:')) {
+                                        const summaryMatch = /\[SUMMARY:\s*([^\]]+)\]/i.exec(trimmed);
+                                        summary = summaryMatch ? summaryMatch[1].trim() : undefined;
+                                        console.log('Extracted summary from analysis:', summary);
+                                        continue;
                                     }
-                                    continue;
-                                }
 
-                                // Process character faction change tags: [CHARACTER NAME: JOINED <factionName or PARC>]
-                                const joinedRegex = /\[(.+?):\s*JOINED\s+(.+?)\]/i;
-                                const joinedMatch = joinedRegex.exec(trimmed);
-                                if (joinedMatch) {
-                                    console.log('Processing JOINED tag:', trimmed);
-                                    const characterNameRaw = joinedMatch[1].trim();
-                                    const factionNameRaw = joinedMatch[2].trim();
-                                    
-                                    // Find matching actor using findBestNameMatch
-                                    const allActors = Object.values(stage.getSave().actors);
-                                    const matchedActor = findBestNameMatch(characterNameRaw, allActors);
-                                    
-                                    if (matchedActor) {
-                                        let newFactionId = '';
-                                        
-                                        // Check if joining PARC (empty factionId) or a specific faction
-                                        if (factionNameRaw.toUpperCase() === 'PARC') {
-                                            newFactionId = '';
-                                        } else {
+                                    // Process faction reputation tags: [FACTION: <factionName> +<value>]
+                                    if (trimmed.toUpperCase().startsWith('[FACTION:')) {
+                                        console.log('Processing faction reputation tag:', trimmed);
+                                        const factionTagRegex = /\[FACTION:\s*([^+\-]+)\s*([+\-]\s*\d+)\]/i;
+                                        const factionMatch = factionTagRegex.exec(trimmed);
+                                        if (factionMatch) {
+                                            const factionNameRaw = factionMatch[1].trim();
+                                            const reputationChange = parseInt(factionMatch[2].replace(/\s+/g, ''), 10) || 0;
+
                                             // Find matching faction using findBestNameMatch
                                             const allFactions = Object.values(stage.getSave().factions);
                                             const matchedFaction = findBestNameMatch(factionNameRaw, allFactions);
-                                            
-                                            if (matchedFaction) {
-                                                newFactionId = matchedFaction.id;
+
+                                            if (matchedFaction && reputationChange !== 0) {
+                                                if (!statChanges['FACTION']) statChanges['FACTION'] = {};
+                                                statChanges['FACTION'][matchedFaction.id] = (statChanges['FACTION'][matchedFaction.id] || 0) + reputationChange;
+                                                console.log(`Adding faction reputation change for ${matchedFaction.name}: ${reputationChange > 0 ? '+' : ''}${reputationChange}`);
                                             }
                                         }
-                                        
-                                        // Store the faction change in factionChanges
-                                        factionChanges[matchedActor.id] = newFactionId;
-                                        console.log(`Adding faction change for ${matchedActor?.name}: ${newFactionId}`);
+                                        continue;
                                     }
-                                    continue;
-                                }
 
-                                // Process character role change tags: [CHARACTER NAME: ROLE <roleName>]
-                                const roleRegex = /\[(.+?):\s*ROLE\s+(.+?)\]/i;
-                                const roleMatch = roleRegex.exec(trimmed);
-                                if (roleMatch) {
-                                    console.log('Processing ROLE tag:', trimmed);
-                                    const characterNameRaw = roleMatch[1].trim();
-                                    const roleNameRaw = roleMatch[2].trim();
-                                    
-                                    // Find matching actor using findBestNameMatch
-                                    const allActors = Object.values(stage.getSave().actors);
-                                    const matchedActor = findBestNameMatch(characterNameRaw, allActors);
+                                    // Process character faction change tags: [CHARACTER NAME: JOINED <factionName or PARC>]
+                                    const joinedRegex = /\[(.+?):\s*JOINED\s+(.+?)\]/i;
+                                    const joinedMatch = joinedRegex.exec(trimmed);
+                                    if (joinedMatch) {
+                                        console.log('Processing JOINED tag:', trimmed);
+                                        const characterNameRaw = joinedMatch[1].trim();
+                                        const factionNameRaw = joinedMatch[2].trim();
 
-                                    const currentRole = matchedActor ? matchedActor.getRole(stage.getSave()) : null;
-                                    
-                                    const matchedRole = findBestNameMatch(roleNameRaw, stage.getSave().layout.getModulesWhere(m => true).map(m => ({ name: m.getAttribute('role') || '' })));
-                                    const newRole = ['NONE', 'PATIENT', 'OCCUPANT'].includes(roleNameRaw.toUpperCase()) ? '' : matchedRole?.name || '';
+                                        // Find matching actor using findBestNameMatch
+                                        const allActors = Object.values(stage.getSave().actors);
+                                        const matchedActor = findBestNameMatch(characterNameRaw, allActors);
 
-                                    if (matchedActor && currentRole !== newRole) {
-                                        console.log(`Adding role change for ${matchedActor?.name}: ${newRole}`);
-                                        roleChanges[matchedActor.id] = newRole;
-                                    } else {
-                                        console.log(`Skipping role change for ${matchedActor?.name}; current role is ${currentRole}; detected new role was ${newRole}.`);
-                                    }
-                                    continue;
-                                }
+                                        if (matchedActor) {
+                                            let newFactionId = '';
 
-                                // Process NEW MODULE tags: [NEW MODULE: <moduleName> | ROLE <roleName> | DESCRIPTION <description>]
-                                if (trimmed.toUpperCase().startsWith('[NEW MODULE:')) {
-                                    console.log('Processing NEW MODULE tag:', trimmed);
-                                    const newModuleRegex = /\[NEW MODULE:\s*([^|]+)\|\s*ROLE\s+([^|]+)\|\s*DESCRIPTION\s+([^\]]+)\]/i;
-                                    const newModuleMatch = newModuleRegex.exec(trimmed);
-                                    if (newModuleMatch) {
-                                        const moduleName = newModuleMatch[1].trim();
-                                        const roleName = newModuleMatch[2].trim();
-                                        const description = newModuleMatch[3].trim();
-                                        
-                                        if (moduleName && roleName && description) {
-                                            // Skip this module if the name is too similar to an existing module
-                                            const existingModules = Object.values(MODULE_TEMPLATES).map(m => ({ name: m.name }));
-                                            const similarModule = findBestNameMatch(moduleName, existingModules);
-                                            if (similarModule) {
-                                                console.log(`Detected similar existing module "${similarModule.name}" for proposed new module "${moduleName}"; skipping addition.`);
-                                                continue;
+                                            // Check if joining PARC (empty factionId) or a specific faction
+                                            if (factionNameRaw.toUpperCase() === 'PARC') {
+                                                newFactionId = '';
+                                            } else {
+                                                // Find matching faction using findBestNameMatch
+                                                const allFactions = Object.values(stage.getSave().factions);
+                                                const matchedFaction = findBestNameMatch(factionNameRaw, allFactions);
+
+                                                if (matchedFaction) {
+                                                    newFactionId = matchedFaction.id;
+                                                }
                                             }
 
-                                            // Store the new module data
-                                            skit.endNewModule = {
-                                                id: generateUuid(),
-                                                moduleName: moduleName,
-                                                roleName: roleName,
-                                                description: description
-                                            };
-                                            console.log(`Adding new module: ${moduleName} (Role: ${roleName})`);
+                                            // Store the faction change in factionChanges
+                                            factionChanges[matchedActor.id] = newFactionId;
+                                            console.log(`Adding faction change for ${matchedActor?.name}: ${newFactionId}`);
                                         }
+                                        continue;
                                     }
-                                    continue;
-                                }
 
-                                // Process movement tags using the shared function
-                                const movementResult = processMovementTag(trimmed.slice(1, -1), stage, skit);
-                                if (movementResult) {
-                                    console.log('Processed movement tag from analysis:', trimmed);
-                                    // Apply movement to the last script entry
-                                    if (scriptEntries.length > 0) {
-                                        const lastEntry = scriptEntries[scriptEntries.length - 1];
-                                        if (!lastEntry.movements) {
-                                            lastEntry.movements = {};
+                                    // Process character role change tags: [CHARACTER NAME: ROLE <roleName>]
+                                    const roleRegex = /\[(.+?):\s*ROLE\s+(.+?)\]/i;
+                                    const roleMatch = roleRegex.exec(trimmed);
+                                    if (roleMatch) {
+                                        console.log('Processing ROLE tag:', trimmed);
+                                        const characterNameRaw = roleMatch[1].trim();
+                                        const roleNameRaw = roleMatch[2].trim();
+
+                                        // Find matching actor using findBestNameMatch
+                                        const allActors = Object.values(stage.getSave().actors);
+                                        const matchedActor = findBestNameMatch(characterNameRaw, allActors);
+
+                                        const currentRole = matchedActor ? matchedActor.getRole(stage.getSave()) : null;
+
+                                        const matchedRole = findBestNameMatch(roleNameRaw, stage.getSave().layout.getModulesWhere(m => true).map(m => ({name: m.getAttribute('role') || ''})));
+                                        const newRole = ['NONE', 'PATIENT', 'OCCUPANT'].includes(roleNameRaw.toUpperCase()) ? '' : matchedRole?.name || '';
+
+                                        if (matchedActor && currentRole !== newRole) {
+                                            console.log(`Adding role change for ${matchedActor?.name}: ${newRole}`);
+                                            roleChanges[matchedActor.id] = newRole;
+                                        } else {
+                                            console.log(`Skipping role change for ${matchedActor?.name}; current role is ${currentRole}; detected new role was ${newRole}.`);
                                         }
-                                        lastEntry.movements[movementResult.actorId] = movementResult.destinationId;
+                                        continue;
                                     }
-                                    continue;
-                                }
 
-                                // Process stat change tags
-                                const statChangeRegex = /\[(.+?):\s*([^\]]+)\]/i;
-                                const match = statChangeRegex.exec(trimmed);
-                                if (match) {
-                                    const target = match[1].trim();
-                                    const payload = match[2].trim();
+                                    // Process NEW MODULE tags: [NEW MODULE: <moduleName> | ROLE <roleName> | DESCRIPTION <description>]
+                                    if (trimmed.toUpperCase().startsWith('[NEW MODULE:')) {
+                                        console.log('Processing NEW MODULE tag:', trimmed);
+                                        const newModuleRegex = /\[NEW MODULE:\s*([^|]+)\|\s*ROLE\s+([^|]+)\|\s*DESCRIPTION\s+([^\]]+)\]/i;
+                                        const newModuleMatch = newModuleRegex.exec(trimmed);
+                                        if (newModuleMatch) {
+                                            const moduleName = newModuleMatch[1].trim();
+                                            const roleName = newModuleMatch[2].trim();
+                                            const description = newModuleMatch[3].trim();
 
-                                    if (target.toUpperCase() === 'STATION') {
-                                        // Station stat changes
-                                        const adjustments = payload.split(',').map(p => p.trim());
+                                            if (moduleName && roleName && description) {
+                                                // Skip this module if the name is too similar to an existing module
+                                                const existingModules = Object.values(MODULE_TEMPLATES).map(m => ({name: m.name}));
+                                                const similarModule = findBestNameMatch(moduleName, existingModules);
+                                                if (similarModule) {
+                                                    console.log(`Detected similar existing module "${similarModule.name}" for proposed new module "${moduleName}"; skipping addition.`);
+                                                    continue;
+                                                }
 
-                                        for (const adj of adjustments) {
-                                            const m = adj.match(/([A-Za-z\s]+)\s*([+-]\s*\d+)/i);
-                                            if (!m) continue;
-                                            const statNameRaw = m[1].trim();
-                                            const num = parseInt(m[2].replace(/\s+/g, ''), 10) || 0;
-
-                                            // Normalize stat name to possible Stat enum value if possible
-                                            let statKey = statNameRaw.toLowerCase().trim();
-                                            console.log(`Normalizing station stat name for matching:${statKey}.`);
-                                            const enumMatch = Object.values(StationStat).find(s => s.toLowerCase() === statKey || s.toLowerCase().includes(statKey) || statKey.includes(s.toLowerCase()));
-                                            if (enumMatch) statKey = enumMatch;
-                                            else continue; // Invalid station stat
-
-                                            if (!statChanges['STATION']) statChanges['STATION'] = {};
-                                            console.log(`Adding station stat change: ${statKey} ${num > 0 ? '+' : ''}${num}`);
-                                            statChanges['STATION'][statKey] = (statChanges['STATION'][statKey] || 0) + num;
+                                                // Store the new module data
+                                                skit.endNewModule = {
+                                                    id: generateUuid(),
+                                                    moduleName: moduleName,
+                                                    roleName: roleName,
+                                                    description: description
+                                                };
+                                                console.log(`Adding new module: ${moduleName} (Role: ${roleName})`);
+                                            }
                                         }
-                                    } else {
-                                        // Character stat changes
-                                        // Find matching present actor using findBestNameMatch
-                                        const presentActors: Actor[] = Object.values(stage.getSave().actors).filter(a => a.locationId === (skit.moduleId || ''));
-                                        const matched = findBestNameMatch(target, presentActors);
-                                        if (!matched) continue;
+                                        continue;
+                                    }
 
-                                        const adjustments = payload.split(',').map(p => p.trim());
-                                        for (const adj of adjustments) {
-                                            const m = adj.match(/([A-Za-z\s]+)\s*([+-]\s*\d+)/i);
-                                            if (!m) continue;
-                                            const statNameRaw = m[1].trim();
-                                            const num = parseInt(m[2].replace(/\s+/g, ''), 10) || 0;
+                                    // Process movement tags using the shared function
+                                    const movementResult = processMovementTag(trimmed.slice(1, -1), stage, skit);
+                                    if (movementResult) {
+                                        console.log('Processed movement tag from analysis:', trimmed);
+                                        // Apply movement to the last script entry
+                                        if (scriptEntries.length > 0) {
+                                            const lastEntry = scriptEntries[scriptEntries.length - 1];
+                                            if (!lastEntry.movements) {
+                                                lastEntry.movements = {};
+                                            }
+                                            lastEntry.movements[movementResult.actorId] = movementResult.destinationId;
+                                        }
+                                        continue;
+                                    }
 
-                                            // Normalize stat name to possible Stat enum value if possible
-                                            let statKey = statNameRaw.toLowerCase().trim();
-                                            const enumMatch = Object.values(Stat).find(s => s.toLowerCase() === statKey || s.toLowerCase().includes(statKey) || statKey.includes(s.toLowerCase()));
-                                            if (enumMatch) statKey = enumMatch;
-                                            else continue; // Invalid character stat
+                                    // Process stat change tags
+                                    const statChangeRegex = /\[(.+?):\s*([^\]]+)\]/i;
+                                    const match = statChangeRegex.exec(trimmed);
+                                    if (match) {
+                                        const target = match[1].trim();
+                                        const payload = match[2].trim();
 
-                                            if (!statChanges[matched.id]) statChanges[matched.id] = {};
-                                            console.log(`Adding stat change for ${matched.name}: ${statKey} ${num > 0 ? '+' : ''}${num}`);
-                                            statChanges[matched.id][statKey] = (statChanges[matched.id][statKey] || 0) + num;
+                                        if (target.toUpperCase() === 'STATION') {
+                                            // Station stat changes
+                                            const adjustments = payload.split(',').map(p => p.trim());
+
+                                            for (const adj of adjustments) {
+                                                const m = adj.match(/([A-Za-z\s]+)\s*([+-]\s*\d+)/i);
+                                                if (!m) continue;
+                                                const statNameRaw = m[1].trim();
+                                                const num = parseInt(m[2].replace(/\s+/g, ''), 10) || 0;
+
+                                                // Normalize stat name to possible Stat enum value if possible
+                                                let statKey = statNameRaw.toLowerCase().trim();
+                                                console.log(`Normalizing station stat name for matching:${statKey}.`);
+                                                const enumMatch = Object.values(StationStat).find(s => s.toLowerCase() === statKey || s.toLowerCase().includes(statKey) || statKey.includes(s.toLowerCase()));
+                                                if (enumMatch) statKey = enumMatch;
+                                                else continue; // Invalid station stat
+
+                                                if (!statChanges['STATION']) statChanges['STATION'] = {};
+                                                console.log(`Adding station stat change: ${statKey} ${num > 0 ? '+' : ''}${num}`);
+                                                statChanges['STATION'][statKey] = (statChanges['STATION'][statKey] || 0) + num;
+                                            }
+                                        } else {
+                                            // Character stat changes
+                                            // Find matching present actor using findBestNameMatch
+                                            const presentActors: Actor[] = Object.values(stage.getSave().actors).filter(a => a.locationId === (skit.moduleId || ''));
+                                            const matched = findBestNameMatch(target, presentActors);
+                                            if (!matched) continue;
+
+                                            const adjustments = payload.split(',').map(p => p.trim());
+                                            for (const adj of adjustments) {
+                                                const m = adj.match(/([A-Za-z\s]+)\s*([+-]\s*\d+)/i);
+                                                if (!m) continue;
+                                                const statNameRaw = m[1].trim();
+                                                const num = parseInt(m[2].replace(/\s+/g, ''), 10) || 0;
+
+                                                // Normalize stat name to possible Stat enum value if possible
+                                                let statKey = statNameRaw.toLowerCase().trim();
+                                                const enumMatch = Object.values(Stat).find(s => s.toLowerCase() === statKey || s.toLowerCase().includes(statKey) || statKey.includes(s.toLowerCase()));
+                                                if (enumMatch) statKey = enumMatch;
+                                                else continue; // Invalid character stat
+
+                                                if (!statChanges[matched.id]) statChanges[matched.id] = {};
+                                                console.log(`Adding stat change for ${matched.name}: ${statKey} ${num > 0 ? '+' : ''}${num}`);
+                                                statChanges[matched.id][statKey] = (statChanges[matched.id][statKey] || 0) + num;
+                                            }
                                         }
                                     }
                                 }
