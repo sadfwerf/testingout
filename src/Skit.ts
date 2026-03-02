@@ -536,26 +536,19 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                             // Find matching actor using findBestNameMatch
                             const matched = findBestNameMatch(characterName, allActors);
                             if (!matched) continue;
-                            
+
                             // Try to map emotion using EMOTION_SYNONYMS if not a standard emotion
                             let finalEmotion: Emotion | undefined;
                             if (emotionName in Emotion) {
                                 finalEmotion = emotionName as Emotion;
                                 console.log(`Recognized standard emotion "${finalEmotion}" for ${matched.name}`);
                             } else {
-                                // Try to map emotion using EMOTION_SYNONYMS if not a standard emotion
-                                let finalEmotion: Emotion | undefined;
-                                if (emotionName in Emotion) {
-                                    finalEmotion = emotionName as Emotion;
-                                    console.log(`Recognized standard emotion "${finalEmotion}" for ${matched.name}`);
+                                const closestEmotion = findBestNameMatch(emotionName, Object.keys(EMOTION_MAPPING).map(e => ({ name: e })));
+                                if (closestEmotion) {
+                                    console.log(`Emotion "${emotionName}" for ${matched.name} mapped to emotion "${EMOTION_MAPPING[closestEmotion.name]}".`);
+                                    finalEmotion = EMOTION_MAPPING[closestEmotion.name];
                                 } else {
-                                    const closestEmotion = findBestNameMatch(emotionName, Object.keys(EMOTION_MAPPING).map(e => ({ name: e })));
-                                    if (closestEmotion) {
-                                        console.warn(`Emotion "${emotionName}" for ${matched.name} mapped to emotion "${EMOTION_MAPPING[closestEmotion.name]}".`);
-                                        finalEmotion = EMOTION_MAPPING[closestEmotion.name];
-                                    } else {
-                                        console.warn(`Unrecognized emotion "${emotionName}" for ${matched.name} and no close match found; skipping tag.`);
-                                    }
+                                    console.warn(`Unrecognized emotion "${emotionName}" for ${matched.name} and no close match found; skipping tag.`);
                                 }
                             }
                             
@@ -579,15 +572,11 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                         currentLine = trimmed;
                         currentEmotionTags = newEmotionTags;
                         currentMovements = newMovements;
-                        console.log(`New entry movements:`);
-                        console.log(currentMovements);
                     } else {
                         // Continuation of previous line
                         currentLine += '\n' + trimmed;
                         currentEmotionTags = {...currentEmotionTags, ...newEmotionTags};
                         currentMovements = {...currentMovements, ...newMovements};
-                        console.log(`Continued entry movements:`);
-                        console.log(currentMovements);
                     }
                 }
                 if (currentLine) {
@@ -596,8 +585,6 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                         emotions: currentEmotionTags,
                         movements: currentMovements
                     });
-                    console.log(`Final tags:`);
-                    console.log(combinedEmotionTags);
                 }
 
                 // Convert combined lines into ScriptEntry objects by splitting at first ':'
