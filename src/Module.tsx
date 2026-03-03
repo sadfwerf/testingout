@@ -10,19 +10,7 @@ export type ModuleType = 'echo chamber' | 'comms' | 'generator' | 'quarters' | '
     | 'cryo bank' | 'aperture' | 'director module'
     
     | string; // Allow string for modded modules
-    /*| 'hydroponics' | 'laboratory' | 'observatory' | 'security' | 'storage' | 'market' |
-    'brig' | 'showers' | 'conservatory' |
-    // Administration pack:
-    'office' | 'vault' | 'archives' |
-    // Tourism pack:
-    'guest wing' | 'shuttle bay' | 'restaurant' | 'casino' | 'spa' |
-    // Spirituality/arcana pack:
-    'chapel' | 'arcanium' | 'meditation room' | 'ritual chamber' | 'reliquary' |
-    // Recreation pack:
-    'holodeck' | 'arcade' | 'arena' | 'disco' | 'theater' |
-    // Spicy pack:
-    'brothel' | 'dungeon' | 'black market' | 'harem' | 
-    */
+
 export enum StationStat {
     SYSTEMS = 'Systems',
     COMFORT = 'Comfort',
