@@ -414,6 +414,10 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
     if (!newActor.name) {
         console.log(`Discarding actor due to missing name: ${newActor.name}`);
         return null;
+    // if there's a best name match, discard this (too similar to existing characters):
+    } else if (findBestNameMatch(newActor.name, [...Object.values(stage.getSave().actors), ...stage.getSave().reserveActors || []])) {
+        console.log(`Discarding actor due to name similarity: ${newActor.name}`);
+        return null;
     } else if (!newActor.description) {
         console.log(`Discarding actor due to missing description: ${newActor.name}`);
         return null;
@@ -482,7 +486,7 @@ export async function generateBaseActorImage(actor: Actor, stage: Stage, force: 
             actor.emotionPack = {'base': actor.emotionPack['base']};
         }
         // Generate neutral but don't wait up.
-        generateEmotionImage(actor, Emotion.neutral, stage);
+        void generateEmotionImage(actor, Emotion.neutral, stage);
     }
 }
 

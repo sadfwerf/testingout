@@ -252,34 +252,6 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     async load(): Promise<Partial<LoadResponse<InitStateType, ChatStateType, MessageStateType>>> {
 
-        // Attempt to load data from storage API; ten parallel requests for each save slot:
-        /*const promises = [];
-        const saves: (SaveType | undefined)[] = Array(this.SAVE_SLOTS).fill(undefined);
-        for (let slot = 0; slot < this.SAVE_SLOTS; slot++) {
-            promises.push((async () => {
-                const response = await this.storage.get(`saveData_${slot}`).forUser(this.userId);
-                if (response && response.data && response.data.length > 0 && response.data[0].value && Object.keys(response.data[0].value).length > 0) {
-                    console.log(`Loaded save data for slot ${slot} from storage API.`);
-                    saves[slot] = this.rehydrateSave(response.data[0].value);
-                } else if (response && response.status !== 200) {
-                    console.log(`Falling back to chatstate save for slot ${slot} due to error response:`, response);
-                    saves[slot] = this.saves[slot]; // fall back to existing save data if available
-                } else {
-                    console.log(`No save data found for slot ${slot}.`);
-                }
-            })());
-        }
-        await Promise.all(promises);
-        
-        // If any saves were loaded, use them:
-        if (saves.some(save => save !== undefined)) {
-            console.log('Loaded saves from storage API.');
-            this.saves = saves;
-        } else {
-            console.log('No saves loaded from storage API; using existing saves.');
-            this.saveAllGames();
-        }*/
-
         // Remove saves that have no actors or layout (they didn't even initialize an aide); set those indices to undefined
         this.saves = this.saves.map(save => (save && save.actors && Object.keys(save.actors).length > 0 && save.layout) ? save : undefined);
 
@@ -428,30 +400,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         } else {
             console.warn('No saves to update in chat state; skipping messenger update.');
         }
-        // Persist to storage API
-       /* this.storage.set(`saveData_${this.saveSlot}`, this.currentSave).forUser().then(() => {
-            console.log(`Saved game to slot ${this.saveSlot} in storage API.`)
-        });*/
     }
 
     saveAllGames() {
-        /*let updateBuilder: UpdateBuilder | undefined = undefined;
-        for (let slot = 0; slot < this.SAVE_SLOTS; slot++) {
-            if (updateBuilder === undefined) {
-                updateBuilder = this.storage.set(`saveData_${slot}`, this.saves[slot]).forUser();
-            } else {
-                updateBuilder = updateBuilder.set(`saveData_${slot}`, this.saves[slot]).forUser();
-            }
-        }
-        
-        if (updateBuilder) {
-            void updateBuilder.then(() => {
-                console.log('All saves completed');
-            }, (err) => {
-                console.error('Save failed:', err);
-            });
-        }*/
-        this.messenger.updateChatState(this.buildSaves());
+        void this.messenger.updateChatState(this.buildSaves());
     }
 
     deleteSave(slotIndex: number) {
