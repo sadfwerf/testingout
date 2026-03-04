@@ -123,24 +123,21 @@ export interface ModuleIntrinsic {
 }
 
 const randomAction = (module: Module, stage: Stage, setScreenType: (type: ScreenType) => void) => {
-            // If there are actors here, open a skit with them:
-            if (Object.values(stage.getSave().actors).some(a => a.locationId === module.id)) {
-                // Maybe move the module's owner (if any) here (make sure they aren't located at a faction):
-                const owner = module.ownerId ? stage.getSave().actors[module.ownerId] : undefined;
-                if (owner && !owner.isOffSite(stage.getSave()) && Math.random() < 0.5) {
-                    owner.locationId = module.id;
-                }
+    // Maybe move the module's owner (if any) here (make sure they aren't located at a faction):
+    const owner = module.ownerId ? stage.getSave().actors[module.ownerId] : undefined;
+    if (owner && !owner.isOffSite(stage.getSave()) && Math.random() < 0.5) {
+        owner.locationId = module.id;
+    }
 
-                stage.setSkit({
-                    type: SkitType.RANDOM_ENCOUNTER,
-                    moduleId: module.id,
-                    script: [],
-                    generating: true,
-                    context: {},
-                });
-                setScreenType(ScreenType.SKIT);
-            }
-        };
+    stage.setSkit({
+        type: SkitType.RANDOM_ENCOUNTER,
+        moduleId: module.id,
+        script: [],
+        generating: true,
+        context: {},
+    });
+    setScreenType(ScreenType.SKIT);
+};
 
 export const MODULE_TEMPLATES: Record<ModuleType, ModuleIntrinsic> = {
     'echo chamber': {
@@ -474,7 +471,7 @@ export class Module<T extends ModuleType = ModuleType> {
     /**
      * Get the action method for this module type
      */
-    getAction(): ((module: Module, stage: Stage, setScreenType: (type: ScreenType) => void) => void) | undefined {
+    getAction(): ((module: Module, stage: Stage, setScreenType: (type: ScreenType) => void) => void) {
         return MODULE_TEMPLATES[this.type]?.action || randomAction;
     }
 }
