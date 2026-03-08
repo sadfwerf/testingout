@@ -25,6 +25,7 @@ export interface ScriptEntry {
     actorEmotions?: {[key: string]: Emotion}; // actor name -> emotion string
     endScene?: boolean; // Whether this entry marks the end of the scene
     movements?: {[actorId: string]: string}; // actor ID -> new module ID
+    outfitChanges?: {[actorId: string]: string}; // actor ID -> new outfit ID
     moveToModuleId?: string; // Optional ID of a module that the scene moves to as of this entry.
 }
 
@@ -33,6 +34,7 @@ export interface SkitData {
     moduleId: string;
     actorId?: string;
     initialActorLocations?: {[actorId: string]: string}; // Initial actor locations at the start of the skit.
+    initialActorOutfits?: {[actorId: string]: string}; // Initial actor outfits at the start of the skit.
     script: ScriptEntry[];
     generating?: boolean;
     context: any;
@@ -144,7 +146,7 @@ export function generateSkitTypePrompt(skit: SkitData, stage: Stage, continuing:
     }
 }
 
-function buildScriptLog(skit: SkitData, additionalEntries: ScriptEntry[] = []): string {
+function buildScriptLog(skit: SkitData, additionalEntries: ScriptEntry[] = [], stage?: Stage): string {
         return ((skit.script && skit.script.length > 0) || additionalEntries.length > 0) ?
             [...skit.script, ...additionalEntries].map(e => {
                 // Find the best matching emotion key for this speaker
@@ -153,7 +155,12 @@ function buildScriptLog(skit: SkitData, additionalEntries: ScriptEntry[] = []): 
                 const bestMatch = findBestNameMatch(e.speaker, candidates);
                 const matchingKey = bestMatch?.name;
                 const emotionText = matchingKey ? ` [${matchingKey} EXPRESSES ${e.actorEmotions?.[matchingKey]}]` : '';
-                return `${e.speaker}:${e.message}${emotionText}`;
+                const wearsText = Object.entries(e.outfitChanges || {}).map(([actorId, outfitId]) => {
+                    const actor = stage?.getSave().actors?.[actorId];
+                    const outfit = actor?.outfits.find(o => o.id === outfitId);
+                    return actor && outfit ? ` [${actor.name} WEARS ${outfit.name}]` : '';
+                }).join('');
+                return `${e.speaker}:${e.message}${emotionText}${wearsText}`;
             }).join('\n')
             : '(None so far)';
 }
@@ -231,6 +238,31 @@ function getCurrentActorLocations(skit: SkitData, upToIndex: number = -1): {[act
     return currentLocations;
 }
 
+/**
+ * Build a map of actorId -> current outfit at a point in the script.
+ */
+function getCurrentActorOutfits(skit: SkitData, stage: Stage, upToIndex: number = -1): {[actorId: string]: string} {
+    const currentOutfits = {
+        ...Object.values(stage.getSave().actors).reduce((acc, actor) => {
+            acc[actor.id] = actor.outfitId;
+            return acc;
+        }, {} as {[actorId: string]: string}),
+        ...(skit.initialActorOutfits || {})
+    };
+    const endIndex = Math.min(skit.script.length, upToIndex === -1 ? skit.script.length : upToIndex);
+
+    for (let i = 0; i < endIndex; i++) {
+        const entry = skit.script[i];
+        if (entry?.outfitChanges) {
+            Object.entries(entry.outfitChanges).forEach(([actorId, outfitId]) => {
+                currentOutfits[actorId] = outfitId;
+            });
+        }
+    }
+
+    return currentOutfits;
+}
+
 function processSceneMovementTag(rawTag: string, stage: Stage): string | null {
     const sceneMovementRegex = /^SCENE\s+MOVES\s+to\s+(.+)$/i;
     const sceneMovementMatch = sceneMovementRegex.exec(rawTag);
@@ -251,6 +283,38 @@ function processSceneMovementTag(rawTag: string, stage: Stage): string | null {
 
     console.log(`Scene movement detected: scene moves to ${targetModuleMatch.module.getAttribute('name')} (${targetModuleMatch.module.id})`);
     return targetModuleMatch.module.id;
+}
+
+/**
+ * Process an appearance tag and return actor/outfit IDs if valid.
+ * Format: [Character Name WEARS Appearance Name]
+ */
+function processWearTag(rawTag: string, stage: Stage): { actorId: string; outfitId: string } | null {
+    const wearRegex = /^([^[\]]+?)\s+WEARS\s+(.+)$/i;
+    const wearMatch = wearRegex.exec(rawTag);
+    if (!wearMatch) return null;
+
+    const characterName = wearMatch[1].trim();
+    const appearanceName = wearMatch[2].trim();
+    const allActors: Actor[] = Object.values(stage.getSave().actors);
+    const matchedActor = findBestNameMatch(characterName, allActors);
+
+    if (!matchedActor) {
+        console.warn(`Could not find actor matching WEARS tag character: ${characterName}`);
+        return null;
+    }
+
+    const matchedOutfit = findBestNameMatch(
+        appearanceName,
+        matchedActor.outfits.map(outfit => ({ name: outfit.name, outfit }))
+    );
+
+    if (!matchedOutfit) {
+        console.warn(`Could not find outfit matching WEARS tag appearance "${appearanceName}" for ${matchedActor.name}; discarding tag.`);
+        return null;
+    }
+
+    return { actorId: matchedActor.id, outfitId: matchedOutfit.outfit.id };
 }
 
 /**
@@ -357,10 +421,14 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
     // Initialize skit with all actor locations if this is the first generation
     if (skit.script.length === 0) {
         skit.initialActorLocations = {};
+        skit.initialActorOutfits = {};
         Object.values(save.actors).forEach(a => {
             skit.initialActorLocations![a.id] = a.locationId;
+            skit.initialActorOutfits![a.id] = a.outfitId;
         });
     }
+
+    const currentActorOutfitIds = getCurrentActorOutfits(skit, stage, -1);
 
     // Determine present and absent actors for this moment in the skit (as of the last entry in skit.script):
     const currentSceneModuleId = getCurrentSceneModuleId(skit, -1);
@@ -414,7 +482,11 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
             )[0];
             const module = save.layout.getModuleById(actor.locationId);
             const locationString = module ? (module.type === 'quarters' ? (module.ownerId === actor.id ? ' Their Quarters' : (`${save.actors[module.ownerId || ''] || 'Someone'}'s Quarters`)) : module.getAttribute('name')) : 'Unknown';
-            return `  ${actor.name}\n    Description: ${actor.getDescription()}\n    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Patient'}\n    Location: ${locationString}`;
+            const currentOutfitId = currentActorOutfitIds[actor.id] || actor.outfitId;
+            const currentOutfit = actor.getOutfitById(currentOutfitId);
+            return `  ${actor.name}\n    Current Appearance (${currentOutfit.name}): ${actor.getDescription(currentOutfitId)}\n` +
+                (actor.outfits.length > 1 ? `    Other Appearances: ${actor.outfits.filter(o => o.id !== currentOutfit.id).map(o => o.name).join(', ')}\n` : '') +
+                `    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Patient'}\n    Location: ${locationString}`;
         }).join('\n')}` +
         // List away characters for reference; just need description and profile:
         `\n\nOff-Station Characters (On Assignment Away from the PARC):\n${awayPatients.map(actor => {
@@ -423,19 +495,27 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
                 m && m.type !== 'quarters' && m.ownerId === actor.id
             )[0];
             const atFaction = save.factions[actor.locationId];
-            return `  ${actor.name}\n    Description: ${actor.getDescription()}\n    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Patient'}\n    On Assignment to: ${atFaction?.name || 'Unknown Faction'}`;
+            const currentOutfitId = currentActorOutfitIds[actor.id] || actor.outfitId;
+            const currentOutfit = actor.getOutfitById(currentOutfitId);
+            return `  ${actor.name}\n    Current Appearance (${currentOutfit.name}): ${actor.getDescription(currentOutfitId)}\n` +
+                (actor.outfits.length > 1 ? `    Other Appearances: ${actor.outfits.filter(o => o.id !== currentOutfit.id).map(o => o.name).join(', ')}\n` : '') +
+                `    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Patient'}\n    On Assignment to: ${atFaction?.name || 'Unknown Faction'}`;
         }).join('\n')}` +
         // List cryo characters for reference; just need description and profile:
         (cryoPatients.length > 0 ? `\n\nCryo Frozen Characters (Absolutely Unavailable):\n${cryoPatients.map(actor => {
             const entranceEvent = stage.getSave().timeline?.find(event => event.skit?.actorId === actor.id && event.skit?.type === SkitType.ENTER_CRYO);
             const entranceDate = entranceEvent ? entranceEvent.day : stage.getSave().day;
-            return `  ${actor.name}\n    Description: ${actor.getDescription()}\n    Profile: ${actor.profile}\n    Days in Cryo: ${save.day - entranceDate}`;
+            const currentOutfitId = currentActorOutfitIds[actor.id] || actor.outfitId;
+            const currentOutfit = actor.getOutfitById(currentOutfitId);
+            return `  ${actor.name}\n    Current Appearance (${currentOutfit.name}): ${actor.getDescription(currentOutfitId)}\n` +
+                (actor.outfits.length > 1 ? `    Other Appearances: ${actor.outfits.filter(o => o.id !== currentOutfit.id).map(o => o.name).join(', ')}\n` : '') +
+                `    Profile: ${actor.profile}\n    Days in Cryo: ${save.day - entranceDate}`;
         }).join('\n')}` : '') +
         // List stat meanings, for reference:
         `\n\nStats:\n${Object.values(Stat).map(stat => `  ${stat.toUpperCase()}: ${getStatDescription(stat)}`).join('\n')}` +
         `\n\nScene Prompt:\n  ${generateSkitTypePrompt(skit, stage, skit.script.length > 0)}` +
         (faction ? `\n\n${faction.name} Details:\n  ${faction.description}\n${faction.name} Aesthetic:\n  ${faction.visualStyle}` : '') +
-        (factionRepresentative ? `\n${faction?.name || 'The faction'}'s representative, ${factionRepresentative.name}, appears on-screen. Their description: ${factionRepresentative.getDescription()}` : 'They have no designated liaison for this communication; any characters introduced during this scene will be transient.') +
+        (factionRepresentative ? `\n${faction?.name || 'The faction'}'s representative, ${factionRepresentative.name}, appears on-screen. Their description: ${factionRepresentative.getDescription(currentActorOutfitIds[factionRepresentative.id] || factionRepresentative.outfitId)}` : 'They have no designated liaison for this communication; any characters introduced during this scene will be transient.') +
         (faction ? `\n\nThis skit may explore the nature of this faction's relationship with an intentions for the Director, the PARC, or its patients. ` +
             `Typically, this and other factions contact the PARC to express interest in making offers for resources, information, or patients. ` +
             `The faction could have a temporary job to offer a patient, or suggest an exchange of resources or favors. Or they could have a permanent role in mind for an ideal candidate patient. ` +
@@ -452,7 +532,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
                     const moduleDescription = module ? (module.type === 'quarters' && moduleOwner ? `${moduleOwner.name}'s quarters` : `the ${module.getAttribute('name')}`) : 'an unknown location';
                     return ((!v.skit.summary || index == pastEvents.length - 1) ?
                         (`\n\n  Script of Scene in ${moduleDescription} (${stage.getSave().day - v.day}) days ago:\n` +
-                        `${buildScriptLog(v.skit)}`) :
+                        `${buildScriptLog(v.skit, [], stage)}`) :
                         (`\n\n  Summary of scene in ${moduleDescription} (${stage.getSave().day - v.day}) days ago:\n` + v.skit.summary)
                         )
                 } else {
@@ -468,7 +548,9 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
                 m && m.type !== 'quarters' && m.ownerId === actor.id
             )[0];
             const birthDay = save.timeline?.find(event => event.skit?.actorId === actor.id && event.skit?.type === SkitType.INTRO_CHARACTER)?.day || save.day;
-            return `  ${actor.name}\n    Description: ${actor.getDescription()}\n    Profile: ${actor.profile}\n    Character Arc: ${actor.characterArc}\n    Days Aboard: ${save.day - birthDay}\n` +
+            const currentOutfitId = currentActorOutfitIds[actor.id] || actor.outfitId;
+            const currentOutfit = actor.getOutfitById(currentOutfitId);
+            return `  ${actor.name}\n    Appearance: ${currentOutfit.name}\n    Description: ${actor.getDescription(currentOutfitId)}\n    Profile: ${actor.profile}\n    Character Arc: ${actor.characterArc}\n    Days Aboard: ${save.day - birthDay}\n` +
             (roleModule ? `    Role: ${roleModule.getAttribute('role') || 'Patient'} (${actor.heldRoles[roleModule.getAttribute('role') || 'Patient'] || 0} days)\n` : '') +
             `    Role Description: ${roleModule?.getAttribute('roleDescription') || 'This character has no assigned role aboard the PARC. They are to focus upon their own needs.'}\n` +
             `    Stats:\n      ${Object.entries(actor.stats).map(([stat, value]) => `${stat}: ${value}`).join(', ')}`}).join('\n')}` +
@@ -505,10 +587,12 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                     `CHARACTER NAME: [CHARACTER NAME moves to HERE] Character Name enters the room with a wave.\n` +
                     `CHARACTER NAME: Character greets you, "Hey; just checking in. I was absent a moment ago, so a [x moves to y] tag was necessary before I could speak in the scene. I'll be next door if you need anything."\n` +
                     `NARRATOR: [CHARACTER NAME moves to MODULE NAME] Character Name ducks out with a smile. You hear their boots fade away down the corridor beyond.\n\n` +
+                `Example Character Appearance Change Format:\n` +
+                    `NARRATOR: [CHARACTER NAME WEARS APPEARANCE NAME] Character Name enters, having changed into a new outfit to better suit the matter at hand.\n\n` +
                 `Example Character Departure from PARC Format:\n` +
                     `CHARACTER NAME: They sigh profoundly. "Well, I suppose this is goodbye for now." They wave as they somberly step through the bulkhead.\n` +
                     `NARRATOR: [CHARACTER NAME moves to FACTION NAME] You watch on-screen as Character Name's shuttle detaches from the PARC and disappears into the stars.\n` +
-                `Current Scene Script Log to Continue:\n${buildScriptLog(skit)}` +
+                `Current Scene Script Log to Continue:\n${buildScriptLog(skit, [], stage)}` +
                 `\n\nPrimary Instruction:\n` +
                 `  ${skit.script.length == 0 ? 'Produce the initial moments of a scene (perhaps joined in medias res)' : 'Extend or conclude the current scene script'} with three to five entries, ` +
                 `based upon the Premise and the specified Scene Prompt. Primarily involve the Present Characters, although Absent Characters may be moved to this location using appropriate tags, if warranted. ` +
@@ -521,6 +605,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                 `\n\nTag Instruction:\n` +
                 `  Embedded within this script, you may employ special tags to trigger various game mechanics. ` +
                 `\n\n  Emotion tags ("[CHARACTER NAME EXPRESSES JOY]") should be used to indicate visible emotional shifts in a character's appearance using a single-word emotion name. ` +
+                `\n\n  Appearance tags ("[CHARACTER NAME WEARS APPEARANCE NAME]") should be used when a character changes appearance, especially near the beginning of a scene or as they enter. Each character has unique appearances; APPEARANCE NAME must be one listed for the specified character above. ` +
                 `\n\n  A Character movement tag ("[CHARACTER NAME moves to LOCATION]") must be used when an Absent Character enters the scene. ` +
                 `\n\n  Character movement tags ("[CHARACTER NAME moves to LOCATION]") must also be included when a character leaves the scene or moves to a different module on the station. ` +
                 `\n\n  Character movement tags ("[CHARACTER NAME moves to LOCATION]") are also used to move a character to another faction, abstractly representing any faction mission or time away. ` +
@@ -535,7 +620,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                 `As a result, avoid timelines or concrete, countable values throughout the skit, using vague durations or amounts for upcoming events (if at all); the game's mechanics may by unable to map directly to what is depicted in the skit, so ambiguity is preferred. ` +
                 `Generally, focus upon interpersonal dynamics, character growth, faction and patient relationships, and the Station's state, capabilities, and inhabitants.` +
                 `\n\n${alternativePrompt}` +
-                ((stage.getSave().language || 'English').toLowerCase() !== 'english' ? `\n\nNote: The game is now being played in ${stage.getSave().language}. Regardless of historic language use, generate this skit content in ${stage.getSave().language} accordingly. Special emotion and movement tags continue to use English (these are invisible to the user).` : '')
+                ((stage.getSave().language || 'English').toLowerCase() !== 'english' ? `\n\nNote: The game is now being played in ${stage.getSave().language}. Regardless of historic language use, generate this skit content in ${stage.getSave().language} accordingly. Special emotion, appearance, and movement tags continue to use English (these are invisible to the user).` : '')
             );
 
             const response = await stage.generator.textGen({
@@ -562,14 +647,16 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                 // Parse response based on format "NAME: content"; content could be multi-line. We want to ensure that lines that don't start with a name are appended to the previous line.
                 const lines = text.split('\n');
                 const combinedLines: string[] = [];
-                const combinedEmotionTags: {emotions: {[key: string]: Emotion}, movements: {[actorId: string]: string}, moveToModuleId?: string}[] = [];
+                const combinedTagData: {emotions: {[key: string]: Emotion}, movements: {[actorId: string]: string}, outfitChanges: {[actorId: string]: string}, moveToModuleId?: string}[] = [];
                 let currentLine = '';
                 let currentEmotionTags: {[key: string]: Emotion} = {};
                 let currentMovements: {[actorId: string]: string} = {};
+                let currentOutfitChanges: {[actorId: string]: string} = {};
                 let currentSceneMoveToModuleId: string | undefined;
 
                 let parsedSceneModuleId = getCurrentSceneModuleId(skit, -1);
                 const parsedCurrentLocations = getCurrentActorLocations(skit, -1);
+                const parsedCurrentOutfits = getCurrentActorOutfits(skit, stage, -1);
                 for (const line of lines) {
                     // Skip empty lines
                     let trimmed = line.trim();
@@ -579,6 +666,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
 
                     const newEmotionTags: {[key: string]: Emotion} = {};
                     const newMovements: {[actorId: string]: string} = {};
+                    const newOutfitChanges: {[actorId: string]: string} = {};
                     let newSceneMoveToModuleId: string | undefined;
 
                     // Prepare list of all actors (not just present)
@@ -612,6 +700,13 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                         if (movementResult) {
                             newMovements[movementResult.actorId] = movementResult.destinationId;
                             parsedCurrentLocations[movementResult.actorId] = movementResult.destinationId;
+                            continue;
+                        }
+
+                        const wearResult = processWearTag(raw, stage);
+                        if (wearResult) {
+                            newOutfitChanges[wearResult.actorId] = wearResult.outfitId;
+                            parsedCurrentOutfits[wearResult.actorId] = wearResult.outfitId;
                             continue;
                         }
                         
@@ -652,29 +747,33 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                         // New line
                         if (currentLine) {
                             combinedLines.push(currentLine.trim());
-                            combinedEmotionTags.push({
+                            combinedTagData.push({
                                 emotions: currentEmotionTags,
                                 movements: currentMovements,
+                                outfitChanges: currentOutfitChanges,
                                 moveToModuleId: currentSceneMoveToModuleId
                             });
                         }
                         currentLine = trimmed;
                         currentEmotionTags = newEmotionTags;
                         currentMovements = newMovements;
+                        currentOutfitChanges = newOutfitChanges;
                         currentSceneMoveToModuleId = newSceneMoveToModuleId;
                     } else {
                         // Continuation of previous line
                         currentLine += '\n' + trimmed;
                         currentEmotionTags = {...currentEmotionTags, ...newEmotionTags};
                         currentMovements = {...currentMovements, ...newMovements};
+                        currentOutfitChanges = {...currentOutfitChanges, ...newOutfitChanges};
                         currentSceneMoveToModuleId = newSceneMoveToModuleId || currentSceneMoveToModuleId;
                     }
                 }
                 if (currentLine) {
                     combinedLines.push(currentLine.trim());
-                    combinedEmotionTags.push({
+                    combinedTagData.push({
                         emotions: currentEmotionTags,
                         movements: currentMovements,
+                        outfitChanges: currentOutfitChanges,
                         moveToModuleId: currentSceneMoveToModuleId
                     });
                 }
@@ -694,13 +793,16 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                     message = message.replace(/\[([^\]]+)\]/g, '').trim();
                     
                     const entry: ScriptEntry = { speaker, message, speechUrl: '' };
-                    const tagData = combinedEmotionTags[index];
+                    const tagData = combinedTagData[index];
                     
                     if (tagData.emotions && Object.keys(tagData.emotions).length > 0) {
                         entry.actorEmotions = tagData.emotions;
                     }
                     if (tagData.movements && Object.keys(tagData.movements).length > 0) {
                         entry.movements = tagData.movements;
+                    }
+                    if (tagData.outfitChanges && Object.keys(tagData.outfitChanges).length > 0) {
+                        entry.outfitChanges = tagData.outfitChanges;
                     }
                     if (tagData.moveToModuleId) {
                         entry.moveToModuleId = tagData.moveToModuleId;
@@ -714,10 +816,12 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                     if (!entry.message || entry.message.trim().length === 0) {
                         const movements = entry.movements || {};
                         const emotions = entry.actorEmotions || {};
+                        const outfitChanges = entry.outfitChanges || {};
                         const nextEntry = scriptEntries[scriptEntries.indexOf(entry) + 1];
                         if (nextEntry) {
                             nextEntry.movements = {...(nextEntry.movements || {}), ...movements};
                             nextEntry.actorEmotions = {...(nextEntry.actorEmotions || {}), ...emotions};
+                            nextEntry.outfitChanges = {...(nextEntry.outfitChanges || {}), ...outfitChanges};
                         }
                         scriptEntries.splice(scriptEntries.indexOf(entry), 1);
                         continue;
@@ -764,7 +868,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                 console.log('Perform additional analysis.');
                 ttsPromises.push((async () => {
                     const endPrompt = generateSkitPrompt(skit, stage, 0,
-                        `Scene Script for Analysis:\n${buildScriptLog(skit, scriptEntries)}` +
+                        `Scene Script for Analysis:\n${buildScriptLog(skit, scriptEntries, stage)}` +
                         `\n\nInstruction:\nAnalyze the preceding scene script and determine whether the final moments make for a suitable ending to the scene. ` +
                         `If the scene feels complete or has reached a good suspended moment, output "[END SCENE]" followed by a "[SUMMARY: ...]" tag with a brief summary of the entire scene's key events or outcomes. ` +
                         `If the scene does not feel complete, output "[CONTINUE SCENE]" and "[SUMMARY: ...]" tag with a brief explanation of what is missing or what could be developed further to reach a satisfying conclusion. `);
@@ -790,7 +894,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                     if (endScene) {
                         console.log('Scene ending detected; further outcome analysis being conducted.');
                         const analysisPrompt = generateSkitPrompt(skit, stage, 0,
-                            `Scene Script for Analysis:\n${buildScriptLog(skit, scriptEntries)}` +
+                            `Scene Script for Analysis:\n${buildScriptLog(skit, scriptEntries, stage)}` +
                             `\n\nInstruction:\nAnalyze the preceding scene script and output formatted tags in brackets, identifying the following categorical changes to be incorporated into the game as a result of events in this scene. ` +
                             `\n` +
                             `\n#Character Stat Changes:#\n` +
@@ -1109,7 +1213,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
 
 export async function updateCharacterArc(stage: Stage, skit: SkitData, actor: Actor): Promise<void> {
     const analysisPrompt = generateSkitPrompt(skit, stage, 0,
-        `Scene Script for Analysis:\n${buildScriptLog(skit)}` +
+        `Scene Script for Analysis:\n${buildScriptLog(skit, [], stage)}` +
         `${actor.name}'s Current Character Arc:\n${actor.characterArc || 'No established character arc.'}` +
         `\n\nInstruction:\nAnalyze the preceding scene script ${actor.name}'s character arc, then output a revised character arc paragraph that reflects any significant developments from the latest scene script. ` +
         `The character arc should be a concise summary of the character's growth, challenges, and changes experienced so far in the PARC. ` +

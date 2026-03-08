@@ -177,12 +177,13 @@ class Actor {
         this.getEmotionPack(outfitId)[emotion] = imageUrl || '';
     }
 
-    constructor(id: string, name: string, fullPath: string, avatarImageUrl: string, description: string, profile: string, style: string, voiceId: string, emotionPack: EmotionPack, stats: Record<Stat, number>, themeColor: string, themeFontFamily: string) {
+    constructor(id: string, name: string, fullPath: string, avatarImageUrl: string, description: string, profile: string, style: string, voiceId: string, emotionPack: EmotionPack, stats: Record<Stat, number>, themeColor: string, themeFontFamily: string, outfitName: string = ORIGINAL_OUTFIT_NAME) {
         this.id = id;
         this.name = name;
         this.fullPath = fullPath;
         this.avatarImageUrl = avatarImageUrl;
-        const originalOutfit = Actor.createOutfit(ORIGINAL_OUTFIT_NAME, description, emotionPack);
+        const initialOutfitName = outfitName?.trim() || ORIGINAL_OUTFIT_NAME;
+        const originalOutfit = Actor.createOutfit(initialOutfitName, description, emotionPack);
         this.outfits = [originalOutfit];
         this.outfitId = originalOutfit.id;
         this.profile = profile;
@@ -415,6 +416,7 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
             `Instructions: After carefully considering this description and the rules provided, generate a concise breakdown for a character based upon these details in the following strict format:\n` +
             `NAME: Their simple name\n` +
             `DESCRIPTION: A vivid description of the character's physical appearance, attire, and any distinguishing features.\n` +
+            `OUTFIT: A one- to two-word name for the character's current outfit that matches the description.\n` +
             `PROFILE: A brief summary of the character's key personality traits and behaviors.\n` +
             `STYLE: A concise description of the character's sense of overall style, mood, interests, or aesthetic, to be applied to the way they decorate their space.\n` +
             `VOICE: Output the specific voice ID from the Available Voices section that best matches the character's apparent gender (foremost) and personality.\n` +
@@ -427,6 +429,7 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
             `Example Response:\n` +
             `NAME: Jane Doe\n` +
             `DESCRIPTION: A tall, athletic woman with short, dark hair and piercing blue eyes. She wears a simple, utilitarian outfit made from durable materials.\n` +
+            `OUTFIT: Utility Gear\n` +
             `PROFILE: Jane is confident and determined, with a strong sense of justice. She is quick to anger but also quick to forgive. She is fiercely independent and will do whatever it takes to protect those she cares about.\n` +
             `STYLE: Practical and no-nonsense, favoring functionality over fashion. Prefers muted colors and simple designs that allow freedom and comfort.\n` +
             `VOICE: 03a438b7-ebfa-4f72-9061-f086d8f1fca6\n` +
@@ -483,6 +486,7 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
     const themeColor = /^#([0-9A-F]{6}|[0-9A-F]{8})$/i.test(parsedData['color']) ?
             parsedData['color'] :
             ['#788ebdff', '#d3aa68ff', '#75c275ff', '#c28891ff', '#55bbb2ff'][Math.floor(Math.random() * 5)];
+    const generatedOutfitName = typeof parsedData['outfit'] === 'string' ? parsedData['outfit'].trim() : '';
     const newActor = new Actor(
         generateUuid(),
         // Replace name quotation marks with single-quotes to avoid issues where nicknames are highlighted as dialogue:
@@ -507,7 +511,8 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
         // Default to a random color from a small preset list of relatively neutral colors:
         // validate that parsedData is a valid hex color:
         themeColor,
-        parsedData['font'] || 'Arial, sans-serif'
+        parsedData['font'] || 'Arial, sans-serif',
+        generatedOutfitName || ORIGINAL_OUTFIT_NAME
     );
     console.log(`Loaded new actor: ${newActor.name} (ID: ${newActor.id})`);
     console.log(newActor);

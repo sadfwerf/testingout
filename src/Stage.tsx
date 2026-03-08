@@ -1083,6 +1083,14 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                         actor.locationId = newLocationId;
                     }
                 }
+
+                const lastOutfitEntry = [...(save.currentSkit?.script || [])].reverse().find(entry => entry.outfitChanges && Object.keys(entry.outfitChanges).some(changerId => changerId === actor.id));
+                if (lastOutfitEntry && lastOutfitEntry.outfitChanges) {
+                    const newOutfitId = lastOutfitEntry.outfitChanges[actor.id];
+                    if (newOutfitId && actor.outfits.some(outfit => outfit.id === newOutfitId)) {
+                        actor.outfitId = newOutfitId;
+                    }
+                }
             }
 
             save.currentSkit = undefined;

@@ -306,6 +306,31 @@ const getActorsAtIndex = (skit: SkitData, scriptIndex: number, allActors: {[key:
 };
 
 /**
+ * Helper function to get actor outfit IDs at a given script index.
+ * Walks from initialActorOutfits and applies per-entry outfitChanges.
+ */
+const getActorOutfitsAtIndex = (skit: SkitData, scriptIndex: number, allActors: {[key: string]: Actor}): {[actorId: string]: string} => {
+    const currentOutfits = {
+        ...Object.values(allActors).reduce((acc, actor) => {
+            acc[actor.id] = actor.outfitId;
+            return acc;
+        }, {} as {[actorId: string]: string}),
+        ...(skit.initialActorOutfits || {})
+    };
+
+    for (let i = 0; i <= scriptIndex && i < skit.script.length; i++) {
+        const entry = skit.script[i];
+        if (entry.outfitChanges) {
+            Object.entries(entry.outfitChanges).forEach(([actorId, newOutfitId]) => {
+                currentOutfits[actorId] = newOutfitId;
+            });
+        }
+    }
+
+    return currentOutfits;
+};
+
+/**
  * Helper function to calculate the X position for an actor based on their index in the scene.
  * Actors alternate between left and right sides of the screen, with positions distributed
  * within ranges centered at 25vw (left) and 75vw (right).
@@ -448,6 +473,14 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                 actor.locationId = locationId;
             }
         });
+
+        const currentOutfits = getActorOutfitsAtIndex(skit, index, stage().getSave().actors);
+        Object.entries(currentOutfits).forEach(([actorId, outfitId]) => {
+            const actor = stage().getSave().actors[actorId];
+            if (actor && actor.outfits.some(outfit => outfit.id === outfitId)) {
+                actor.outfitId = outfitId;
+            }
+        });
     }, [index, skit, stage]);
 
     // Handle arrow key navigation globally (when input is not focused or is empty)
@@ -562,6 +595,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
 
     const renderActors = (module: Module | null, actors: Actor[], currentSpeaker?: string) => {
         // Display actors centered across the scene bottom. Use emotion from current script entry or neutral as fallback
+        const actorOutfitsAtIndex = getActorOutfitsAtIndex(skit, index, stage().getSave().actors);
         return actors.map((actor, i) => {
             
             // Get emotion for this actor from current script entry
@@ -581,13 +615,14 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
             const xPosition = calculateActorXPosition(i, actors.length, speaker !== null);
             const isSpeaking = actor === speaker;
             const isHovered = hoveredActor === actor;
+            const outfitId = actorOutfitsAtIndex[actor.id] || actor.outfitId;
             
             return (
                 <ActorImage
                     key={actor.id}
                     actor={actor}
                     emotion={emotion}
-                    imageUrl={actor.getEmotionImage(emotion, stage())}
+                    imageUrl={actor.getEmotionImage(emotion, stage(), outfitId)}
                     hologram={actor.isHologram(stage().getSave(), module ? module.id || '' : '')}
                     xPosition={xPosition}
                     yPosition={isVerticalLayout ? 20 : 0}
