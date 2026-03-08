@@ -83,12 +83,17 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
 
     useEffect(() => {
         actor.outfits = editedOutfits;
-        if (selectedOutfitId) {
-            actor.outfitId = selectedOutfitId;
-        }
-    }, [actor, editedOutfits, selectedOutfitId]);
+    }, [actor, editedOutfits]);
 
     const selectedOutfit = editedOutfits.find((outfit) => outfit.id === selectedOutfitId) || editedOutfits[0] || null;
+    const getSelectedOutfitImageUrl = (emotion: Emotion | 'base'): string => selectedOutfit?.emotionPack?.[emotion] || '';
+
+    const syncEditedOutfitsFromActor = () => {
+        setEditedOutfits(actor.outfits.map((outfit) => ({
+            ...outfit,
+            emotionPack: { ...(outfit.emotionPack || {}) },
+        })));
+    };
 
     const handleCloseDetail = () => {
         actor.outfits = initialOutfitsRef.current.map((outfit) => ({
@@ -111,8 +116,8 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                 emotionPack: {},
             }];
 
-        const nextOutfitId = nextOutfits.some((outfit) => outfit.id === selectedOutfitId)
-            ? selectedOutfitId
+        const nextOutfitId = nextOutfits.some((outfit) => outfit.id === actor.outfitId)
+            ? actor.outfitId
             : nextOutfits[0].id;
         
         // Update the actor in the save
@@ -224,7 +229,8 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                 setRegeneratingImages(prev => new Set(prev).add(emotion));
                 
                 try {
-                    await generateEmotionImage(actor, emotion, stage(), true);
+                    await generateEmotionImage(actor, emotion, stage(), true, selectedOutfitId);
+                    syncEditedOutfitsFromActor();
                     // Force a re-render to show the new image
                     forceUpdate({});
                 } catch (error) {
@@ -268,7 +274,22 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
         try {
             const imageKey = getImageKey(target);
             const uploadedUrl = await stage().uploadFile(`${actor.id}-${selectedOutfitId}-${imageKey}.png`, file);
-            actor.setEmotionImageUrl(imageKey, uploadedUrl);
+            const nextOutfits = editedOutfits.map((outfit) => (
+                outfit.id === selectedOutfitId
+                    ? {
+                        ...outfit,
+                        emotionPack: {
+                            ...(outfit.emotionPack || {}),
+                            [imageKey]: uploadedUrl,
+                        },
+                    }
+                    : outfit
+            ));
+            setEditedOutfits(nextOutfits);
+            actor.outfits = nextOutfits.map((outfit) => ({
+                ...outfit,
+                emotionPack: { ...(outfit.emotionPack || {}) },
+            }));
             stage().saveGame();
             forceUpdate({});
         } catch (error) {
@@ -291,7 +312,8 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
             setRegeneratingImages(prev => new Set(prev).add('base'));
             
             try {
-                await generateBaseActorImage(actor, stage(), true, fromAvatar);
+                await generateBaseActorImage(actor, stage(), true, fromAvatar, selectedOutfitId);
+                syncEditedOutfitsFromActor();
                 // Force a re-render to show the new image
                 forceUpdate({});
             } catch (error) {
@@ -384,7 +406,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
     const decorImages = Object.entries(actor.decorImageUrls).filter(([_, url]) => url);
 
     const currentImageKey = imageDialog.target ? getImageKey(imageDialog.target) : '';
-    const currentImageUrl = currentImageKey ? actor.getEmotionImageUrl(currentImageKey) : '';
+    const currentImageUrl = currentImageKey ? getSelectedOutfitImageUrl(currentImageKey as Emotion | 'base') : '';
     const isCurrentImageRegenerating = currentImageKey ? regeneratingImages.has(currentImageKey) : false;
     const imageTargetLabel = imageDialog.target || '';
     const imageTargetOutfitName = selectedOutfit?.name || 'Outfit';
@@ -955,10 +977,10 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                                             style={{
                                                 width: '120px',
                                                 height: '120px',
-                                                backgroundColor: actor.getEmotionImageUrl('base') ? 'transparent' : 'rgba(0, 20, 40, 0.6)',
-                                                border: `2px solid ${actor.getEmotionImageUrl('base') ? 'rgba(255, 136, 0, 0.5)' : 'rgba(0, 255, 136, 0.2)'}`,
+                                                backgroundColor: getSelectedOutfitImageUrl('base') ? 'transparent' : 'rgba(0, 20, 40, 0.6)',
+                                                border: `2px solid ${getSelectedOutfitImageUrl('base') ? 'rgba(255, 136, 0, 0.5)' : 'rgba(0, 255, 136, 0.2)'}`,
                                                 borderRadius: '8px',
-                                                backgroundImage: actor.getEmotionImageUrl('base') ? `url(${actor.getEmotionImageUrl('base')})` : 'none',
+                                                backgroundImage: getSelectedOutfitImageUrl('base') ? `url(${getSelectedOutfitImageUrl('base')})` : 'none',
                                                 backgroundSize: 'cover',
                                                 backgroundPosition: 'center top',
                                                 display: 'flex',
@@ -968,7 +990,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                                                 position: 'relative',
                                             }}
                                         >
-                                            {!actor.getEmotionImageUrl('base') && (
+                                            {!getSelectedOutfitImageUrl('base') && (
                                                 <div style={{
                                                     color: 'rgba(0, 255, 136, 0.3)',
                                                     fontSize: '12px',
@@ -1007,7 +1029,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
 
                                     {/* Emotion Images */}
                                     {allEmotions.map(emotion => {
-                                        const imageUrl = actor.getEmotionImageUrl(emotion);
+                                        const imageUrl = getSelectedOutfitImageUrl(emotion);
                                         const hasImage = !!imageUrl;
                                         const isRegenerating = regeneratingImages.has(emotion);
                                         
