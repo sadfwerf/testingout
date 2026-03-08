@@ -118,10 +118,6 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                 emotionPack: {},
             }];
 
-        const nextOutfitId = nextOutfits.some((outfit) => outfit.id === actor.outfitId)
-            ? actor.outfitId
-            : nextOutfits[0].id;
-        
         // Update the actor in the save
         actor.name = editedActor.name;
         actor.profile = editedActor.profile;
@@ -134,12 +130,10 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
             ...outfit,
             emotionPack: { ...(outfit.emotionPack || {}) },
         }));
-        actor.outfitId = nextOutfitId;
         initialOutfitsRef.current = actor.outfits.map((outfit) => ({
             ...outfit,
             emotionPack: { ...(outfit.emotionPack || {}) },
         }));
-        initialOutfitIdRef.current = nextOutfitId;
 
         // Save the game
         stage().saveGame();
@@ -194,6 +188,11 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
 
     const handleDeleteOutfit = () => {
         if (!selectedOutfit || editedOutfits.length <= 1) {
+            return;
+        }
+
+        if (selectedOutfit.id === actor.outfitId) {
+            console.warn('Cannot delete the actor\'s currently selected outfit.');
             return;
         }
 
@@ -262,8 +261,6 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
         setIsImageDropActive(false);
     };
 
-    const getImageKey = (target: ImageTarget): string => target === 'base' ? 'base' : target;
-
     const handleImageFile = async (file: File, target: ImageTarget) => {
         if (!file.type.startsWith('image/')) {
             alert('Please select a valid image file.');
@@ -277,15 +274,14 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
 
         setIsUploadingImage(true);
         try {
-            const imageKey = getImageKey(target);
-            const uploadedUrl = await stage().uploadFile(`${actor.id}-${selectedOutfitId}-${imageKey}.png`, file);
+            const uploadedUrl = await stage().uploadFile(`${actor.id}-${selectedOutfitId}-${target}.png`, file);
             const nextOutfits = editedOutfits.map((outfit) => (
                 outfit.id === selectedOutfitId
                     ? {
                         ...outfit,
                         emotionPack: {
                             ...(outfit.emotionPack || {}),
-                            [imageKey]: uploadedUrl,
+                            [target]: uploadedUrl,
                         },
                     }
                     : outfit
@@ -298,9 +294,8 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
             stage().saveGame();
             forceUpdate({});
         } catch (error) {
-            const imageKey = getImageKey(target);
-            console.error(`Failed to upload ${imageKey} image:`, error);
-            alert(`Failed to upload ${imageKey} image. Check console for details.`);
+            console.error(`Failed to upload ${target} image:`, error);
+            alert(`Failed to upload ${target} image. Check console for details.`);
         } finally {
             setIsUploadingImage(false);
             if (imageUploadInputRef.current) {
@@ -320,7 +315,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
             ? 'Original Avatar'
             : source === 'description'
                 ? 'Description Only'
-                : `Outfit Base: ${sourceOutfit?.name || 'Unknown Outfit'}`;
+                : `Outfit: ${sourceOutfit?.name || 'Unknown Outfit'}`;
 
         if (source === 'avatar' && !hasAvatarUrl) {
             alert('Original avatar image is not available for this actor.');
@@ -415,9 +410,8 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
     // Get decor images
     const decorImages = Object.entries(actor.decorImageUrls).filter(([_, url]) => url);
 
-    const currentImageKey = imageDialog.target ? getImageKey(imageDialog.target) : '';
-    const currentImageUrl = currentImageKey ? getSelectedOutfitImageUrl(currentImageKey as Emotion | 'base') : '';
-    const isCurrentImageRegenerating = currentImageKey ? regeneratingImages.has(currentImageKey) : false;
+    const currentImageUrl = imageDialog.target ? getSelectedOutfitImageUrl(imageDialog.target as Emotion | 'base') : '';
+    const isCurrentImageRegenerating = imageDialog.target ? regeneratingImages.has(imageDialog.target) : false;
     const imageTargetLabel = imageDialog.target || '';
     const imageTargetOutfitName = selectedOutfit?.name || 'Outfit';
     const baseRegenOutfitOptions = editedOutfits.filter((outfit) => !!outfit.emotionPack?.base);
@@ -426,7 +420,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
         { value: 'description' as BaseRegenSource, label: 'Description Only' },
         ...baseRegenOutfitOptions.map((outfit) => ({
             value: `outfit:${outfit.id}` as BaseRegenSource,
-            label: `Outfit Base: ${outfit.name}`,
+            label: `Outfit: ${outfit.name}`,
         })),
     ];
 
@@ -918,7 +912,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                                         <Button
                                             onClick={handleDeleteOutfit}
                                             variant="secondary"
-                                            disabled={editedOutfits.length <= 1}
+                                            disabled={editedOutfits.length <= 1 || selectedOutfit?.id === actor.outfitId}
                                         >
                                             Delete Outfit
                                         </Button>
@@ -1498,7 +1492,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                             >
                                 {isCurrentImageRegenerating ? 'Generating...' : 'Regenerate Image'}
                             </Button>
-                            <div style={{ marginTop: 'auto' }}>
+                            <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
                                 <Button onClick={handleCloseImageDialog} variant="secondary">
                                     Close
                                 </Button>
