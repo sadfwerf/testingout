@@ -550,10 +550,12 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
             const birthDay = save.timeline?.find(event => event.skit?.actorId === actor.id && event.skit?.type === SkitType.INTRO_CHARACTER)?.day || save.day;
             const currentOutfitId = currentActorOutfitIds[actor.id] || actor.outfitId;
             const currentOutfit = actor.getOutfitById(currentOutfitId);
-            return `  ${actor.name}\n    Appearance: ${currentOutfit.name}\n    Description: ${actor.getDescription(currentOutfitId)}\n    Profile: ${actor.profile}\n    Character Arc: ${actor.characterArc}\n    Days Aboard: ${save.day - birthDay}\n` +
-            (roleModule ? `    Role: ${roleModule.getAttribute('role') || 'Patient'} (${actor.heldRoles[roleModule.getAttribute('role') || 'Patient'] || 0} days)\n` : '') +
-            `    Role Description: ${roleModule?.getAttribute('roleDescription') || 'This character has no assigned role aboard the PARC. They are to focus upon their own needs.'}\n` +
-            `    Stats:\n      ${Object.entries(actor.stats).map(([stat, value]) => `${stat}: ${value}`).join(', ')}`}).join('\n')}` +
+            return `  ${actor.name}\n    Current Appearance (${currentOutfit.name}): ${actor.getDescription(currentOutfitId)}\n` +
+                (actor.outfits.length > 1 ? `    Other Appearances: ${actor.outfits.filter(o => o.id !== currentOutfit.id).map(o => o.name).join(', ')}\n` : '') +
+                `    Profile: ${actor.profile}\n    Character Arc: ${actor.characterArc}\n    Days Aboard: ${save.day - birthDay}\n` +
+                (roleModule ? `    Role: ${roleModule.getAttribute('role') || 'Patient'} (${actor.heldRoles[roleModule.getAttribute('role') || 'Patient'] || 0} days)\n` : '') +
+                `    Role Description: ${roleModule?.getAttribute('roleDescription') || 'This character has no assigned role aboard the PARC. They are to focus upon their own needs.'}\n` +
+                `    Stats:\n      ${Object.entries(actor.stats).map(([stat, value]) => `${stat}: ${value}`).join(', ')}`}).join('\n')}` +
 
         `\n\n${instruction}`;
     return fullPrompt;
@@ -582,13 +584,13 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                     `CHARACTER NAME: They nod in agreement, "If there's any dialogue at all, the entry must be attributed to the character speaking."\n` +
                     `NARRATOR: [CHARACTER NAME EXPRESSES RELIEF] Descriptive content or other scene events occurring around you, the player, can be attributed to NARRATOR. Dialogue cannot be included in NARRATOR entries.\n` +
                     `${stage.getSave().player.name.toUpperCase()}: "Hey, Character Name," I greet them warmly. I'm the player, and my entries use first-person narrative voice, while all other skit entries use second-person to refer to me.\n` +
-                    `\n\n` +
+                    `\n` +
                 `Example Character Movement Format:\n` +
                     `CHARACTER NAME: [CHARACTER NAME moves to HERE] Character Name enters the room with a wave.\n` +
                     `CHARACTER NAME: Character greets you, "Hey; just checking in. I was absent a moment ago, so a [x moves to y] tag was necessary before I could speak in the scene. I'll be next door if you need anything."\n` +
                     `NARRATOR: [CHARACTER NAME moves to MODULE NAME] Character Name ducks out with a smile. You hear their boots fade away down the corridor beyond.\n\n` +
                 `Example Character Appearance Change Format:\n` +
-                    `NARRATOR: [CHARACTER NAME WEARS APPEARANCE NAME] Character Name enters, having changed into a new outfit to better suit the matter at hand.\n\n` +
+                    `NARRATOR: [CHARACTER NAME WEARS PAJAMAS] Character Name enters, already prepped for bedtime.\n\n` +
                 `Example Character Departure from PARC Format:\n` +
                     `CHARACTER NAME: They sigh profoundly. "Well, I suppose this is goodbye for now." They wave as they somberly step through the bulkhead.\n` +
                     `NARRATOR: [CHARACTER NAME moves to FACTION NAME] You watch on-screen as Character Name's shuttle detaches from the PARC and disappears into the stars.\n` +
@@ -875,7 +877,11 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                         `\n\nInstruction:\nAnalyze the preceding scene script and determine whether the final moments make for a suitable ending to the scene. ` +
                         `If the scene feels complete or has reached a good suspended moment, output "[END SCENE]" followed by a "[SUMMARY: ...]" tag with a brief summary of the entire scene's key events or outcomes. ` +
                         `If the scene does not feel complete, output "[CONTINUE SCENE]" and "[SUMMARY: ...]" tag with a brief explanation of what is missing or what could be developed further to reach a satisfying conclusion. `);
-                    const endResponse = await stage.generator.textGen({
+                        `Example Response:\n` +
+                        `[END SCENE]\n[SUMMARY: A faction representative visits the PARC to make an offer to a patient, which they accept, leading to the patient's departure from the station to join that faction permanently.]\n\n` +
+                        `Example Response:\n` +
+                        `[CONTINUE SCENE]\n[SUMMARY: The scene has a promising setup with the faction representative's visit and offer, but it would benefit from further development of the patient's internal conflict and decision-making process before accepting the offer, as well as more dialogue to flesh out the interaction between the patient and the representative.]`
+                        const endResponse = await stage.generator.textGen({
                         prompt: endPrompt,
                         min_tokens: 1,
                         max_tokens: 150,
@@ -1200,6 +1206,9 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                 skit.endProperties = statChanges;
                 skit.endFactionChanges = factionChanges;
                 skit.endRoleChanges = roleChanges;
+                if (endScene && !summary) {
+                    console.log('Scene ended without a summary.');
+                }
                 skit.summary = summary;
 
                 stage.pushMessage(text);
