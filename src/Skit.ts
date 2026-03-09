@@ -154,11 +154,11 @@ function buildScriptLog(skit: SkitData, additionalEntries: ScriptEntry[] = [], s
                 const candidates = emotionKeys.map(key => ({ name: key }));
                 const bestMatch = findBestNameMatch(e.speaker, candidates);
                 const matchingKey = bestMatch?.name;
-                const emotionText = matchingKey ? ` [${matchingKey} EXPRESSES ${e.actorEmotions?.[matchingKey]}]` : '';
+                const emotionText = matchingKey ? ` [${matchingKey} expresses ${e.actorEmotions?.[matchingKey]}]` : '';
                 const wearsText = Object.entries(e.outfitChanges || {}).map(([actorId, outfitId]) => {
                     const actor = stage?.getSave().actors?.[actorId];
                     const outfit = actor?.outfits.find(o => o.id === outfitId);
-                    return actor && outfit ? ` [${actor.name} WEARS ${outfit.name}]` : '';
+                    return actor && outfit ? ` [${actor.name} wears ${outfit.name}]` : '';
                 }).join('');
                 return `${e.speaker}:${e.message}${emotionText}${wearsText}`;
             }).join('\n')
@@ -287,10 +287,10 @@ function processSceneMovementTag(rawTag: string, stage: Stage): string | null {
 
 /**
  * Process an appearance tag and return actor/outfit IDs if valid.
- * Format: [Character Name WEARS Appearance Name]
+ * Format: [Character Name wears Appearance Name]
  */
 function processWearTag(rawTag: string, stage: Stage): { actorId: string; outfitId: string } | null {
-    const wearRegex = /^([^[\]]+?)\s+WEARS\s+(.+)$/i;
+    const wearRegex = /^([^[\]]+?)\s+wears\s+(.+)$/i;
     const wearMatch = wearRegex.exec(rawTag);
     if (!wearMatch) return null;
 
@@ -300,7 +300,7 @@ function processWearTag(rawTag: string, stage: Stage): { actorId: string; outfit
     const matchedActor = findBestNameMatch(characterName, allActors);
 
     if (!matchedActor) {
-        console.warn(`Could not find actor matching WEARS tag character: ${characterName}`);
+        console.warn(`Could not find actor matching wears tag character: ${characterName}`);
         return null;
     }
 
@@ -310,7 +310,7 @@ function processWearTag(rawTag: string, stage: Stage): { actorId: string; outfit
     );
 
     if (!matchedOutfit) {
-        console.warn(`Could not find outfit matching WEARS tag appearance "${appearanceName}" for ${matchedActor.name}; discarding tag.`);
+        console.warn(`Could not find outfit matching wears tag appearance "${appearanceName}" for ${matchedActor.name}; discarding tag.`);
         return null;
     }
 
@@ -578,11 +578,11 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
             const fullPrompt = generateSkitPrompt(skit, stage, 5 + retries * 5, // Start with lots of history, reducing each iteration.
                 `Example Script Format:\n` +
                     `CHARACTER NAME: Character Name does some actions in prose; for example, they may be waving to you, the player. They say, "My dialogue is in quotation marks."\n` +
-                    `CHARACTER NAME: [CHARACTER NAME EXPRESSES PRIDE] "A character can have two entries in a row, if they have more to say or do or it makes sense to break up a lot of activity."\n` +
-                    `ANOTHER CHARACTER NAME: [ANOTHER CHARACTER NAME EXPRESSES JOY][CHARACTER NAME EXPRESSES SURPRISE] ` +
+                    `CHARACTER NAME: [CHARACTER NAME expresses PRIDE] "A character can have two entries in a row, if they have more to say or do or it makes sense to break up a lot of activity."\n` +
+                    `ANOTHER CHARACTER NAME: [ANOTHER CHARACTER NAME expresses JOY][CHARACTER NAME expresses SURPRISE] ` +
                         `"Other character expressions can update in each other's entries—say, if they're reacting to something the speaker says—, but only one character can speak per entry."\n` +
                     `CHARACTER NAME: They nod in agreement, "If there's any dialogue at all, the entry must be attributed to the character speaking."\n` +
-                    `NARRATOR: [CHARACTER NAME EXPRESSES RELIEF] Descriptive content or other scene events occurring around you, the player, can be attributed to NARRATOR. Dialogue cannot be included in NARRATOR entries.\n` +
+                    `NARRATOR: [CHARACTER NAME expresses RELIEF] Descriptive content or other scene events occurring around you, the player, can be attributed to NARRATOR. Dialogue cannot be included in NARRATOR entries.\n` +
                     `${stage.getSave().player.name.toUpperCase()}: "Hey, Character Name," I greet them warmly. I'm the player, and my entries use first-person narrative voice, while all other skit entries use second-person to refer to me.\n` +
                     `\n` +
                 `Example Character Movement Format:\n` +
@@ -590,7 +590,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                     `CHARACTER NAME: Character greets you, "Hey; just checking in. I was absent a moment ago, so a [x moves to y] tag was necessary before I could speak in the scene. I'll be next door if you need anything."\n` +
                     `NARRATOR: [CHARACTER NAME moves to MODULE NAME] Character Name ducks out with a smile. You hear their boots fade away down the corridor beyond.\n\n` +
                 `Example Character Appearance Change Format:\n` +
-                    `NARRATOR: [CHARACTER NAME WEARS PAJAMAS] Character Name enters, already prepped for bedtime.\n\n` +
+                    `NARRATOR: [CHARACTER NAME wears PAJAMAS] Character Name enters, already prepped for bedtime.\n\n` +
                 `Example Character Departure from PARC Format:\n` +
                     `CHARACTER NAME: They sigh profoundly. "Well, I suppose this is goodbye for now." They wave as they somberly step through the bulkhead.\n` +
                     `NARRATOR: [CHARACTER NAME moves to FACTION NAME] You watch on-screen as Character Name's shuttle detaches from the PARC and disappears into the stars.\n` +
@@ -606,8 +606,8 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                 `Entries from the player, ${stage.getSave().player.name}, are written in first-person, while other entries consistently refer to ${stage.getSave().player.name} in second-person; all other characters are referred to in third-person, even in their own entries.` +
                 `\n\nTag Instruction:\n` +
                 `  Embedded within this script, you may employ special tags to trigger various game mechanics. ` +
-                `\n\n  Emotion tags ("[CHARACTER NAME EXPRESSES JOY]") should be used to indicate visible emotional shifts in a character's appearance using a single-word emotion name. ` +
-                `\n\n  Appearance tags ("[CHARACTER NAME WEARS APPEARANCE NAME]") should be used when a character changes appearance, especially near the beginning of a scene or as they enter. Each character has unique appearances; APPEARANCE NAME must be one listed for the specified character above. ` +
+                `\n\n  Emotion tags ("[CHARACTER NAME expresses JOY]") should be used to indicate visible emotional shifts in a character's appearance using a single-word emotion name. ` +
+                `\n\n  Appearance tags ("[CHARACTER NAME wears APPEARANCE NAME]") should be used when a character changes appearance. Give especial consideration to the beginning of a scene (while establishing a character's current appearance) or as a character enters. Each character has unique appearances; APPEARANCE NAME must be one listed for the specified character. ` +
                 `\n\n  A Character movement tag ("[CHARACTER NAME moves to LOCATION]") must be used when an Absent Character enters the scene. ` +
                 `\n\n  Character movement tags ("[CHARACTER NAME moves to LOCATION]") must also be included when a character leaves the scene or moves to a different module on the station. ` +
                 `\n\n  Character movement tags ("[CHARACTER NAME moves to LOCATION]") are also used to move a character to another faction, abstractly representing any faction mission or time away. ` +
@@ -716,7 +716,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                         }
                         
                         // Look for expresses tags:
-                        const emotionTagRegex = /([^[\]]+)\s+EXPRESSES\s+([^[\]]+)/gi;
+                        const emotionTagRegex = /([^[\]]+)\s+expresses\s+([^[\]]+)/gi;
                         let emotionMatch = emotionTagRegex.exec(raw);
                         if (emotionMatch) {
                             const characterName = emotionMatch[1].trim();
