@@ -988,7 +988,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                             `This tag allows the game engine to create new modules dynamically based on scene events, expanding the station's capabilities and accommodating character roles as needed.\n` +
 
                             `\n#New Appearance Definition:#\n` +
-                            `If the scene establishes a new look for a character(s) (for example, a marked physical change) or suggests the need for an alternative appearance (such as a new uniform), utilize this tag for each new look:\n` +
+                            `If the scene establishes a new look for a character(s) (for example, a marked physical change) or suggests the need for an alternative appearance (such as a new uniform)—which is not represented in their current "Other Appearances" list—, utilize this tag for each new look:\n` +
                             `[NEW APPEARANCE: <characterName> | NAME <appearanceName> | DESCRIPTION <physicalDescription>]\n` +
                             `Full Example:\n` +
                             `[NEW APPEARANCE: ${Object.values(stage.getSave().actors)[0].name} | NAME Mission Armor | DESCRIPTION Reinforced tactical plating over a dark undersuit with compact shoulder lights and weathered gloves.]\n` +

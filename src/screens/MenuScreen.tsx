@@ -282,7 +282,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                     }}
                 >
                     {stage().isAuthenticated 
-                        ? 'v2026.03.07 - Customizable tone setting.'
+                        ? 'v2026.03.09 - Alternative character appearances.'
                         : (
                             <>
                                 This is an unofficial bot; for the latest version for PARC, visit:{' '}
