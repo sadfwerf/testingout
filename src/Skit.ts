@@ -594,8 +594,8 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                     `CHARACTER NAME: [CHARACTER NAME moves to HERE] Character Name enters the room with a wave.\n` +
                     `CHARACTER NAME: Character greets you, "Hey; just checking in. I was absent a moment ago, so a [x moves to y] tag was necessary before I could speak in the scene. I'll be next door if you need anything."\n` +
                     `NARRATOR: [CHARACTER NAME moves to MODULE NAME] Character Name ducks out with a smile. You hear their boots fade away down the corridor beyond.\n\n` +
-                `Example Character Starting Appearance Format:\n` +
-                    `NARRATOR: [CHARACTER NAME wears APPEARANCE NAME] The doors open on Character Name as they lounge in their favorite outfit.\n\n` +
+                (skit.script.length == 0 ? `Example Initial Appearance Establishing Format:\n` +
+                    `NARRATOR: [CHARACTER NAME wears CLUB FIT][ANOTHER CHARACTER wears FORMAL ATTIRE] The doors open on Character Name and Another Character as they lounge in their favorite outfits.\n\n` : '') +
                 `Example Character Appearance Change Format:\n` +
                     `NARRATOR: [CHARACTER NAME wears PAJAMAS] Character Name enters, already prepped for bedtime.\n\n` +
                 `Example Character Departure from PARC Format:\n` +
@@ -628,6 +628,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                 `These tags are not presented to users, so the narrative content of the script should also organically mention characters entering, exiting, or relocating. ` +
                 `\n\nThis scene is a brief visual novel skit within a video game; as such, the scene avoids major developments which would fundamentally alter the mechanics or nature of the game, ` +
                 `instead developing content within the existing rules. ` +
+                (skit.script.length == 0 ? 'As this is the initial, establishing moment of a new scene, evaluate the current appearance and alternative appearances of each character and use Appearance ("wears") tags to update the characters to the most appropriate outfit for the moment. ' : '') +
                 `As a result, avoid timelines or concrete, countable values throughout the skit, using vague durations or amounts for upcoming events (if at all); the game's mechanics may by unable to map directly to what is depicted in the skit, so ambiguity is preferred. ` +
                 `Generally, focus upon interpersonal dynamics, character growth, faction and patient relationships, and the Station's state, capabilities, and inhabitants.` +
                 `\n\n${alternativePrompt}` +
