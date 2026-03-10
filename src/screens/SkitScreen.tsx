@@ -507,7 +507,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [inputText, index, skit, finishTyping, loading]);
+    }, [inputText, index, skit, finishTyping, loading, isEditingMessage]);
 
     useEffect(() => {
         if (skit.script.length == 0) {
