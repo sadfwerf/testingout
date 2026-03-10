@@ -522,7 +522,7 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
         console.log(`Discarding actor due to missing name: ${newActor.name}`);
         return null;
     // if there's a best name match, discard this (too similar to existing characters):
-    } else if (findBestNameMatch(newActor.name, [...Object.values(stage.getSave().actors), ...stage.getSave().reserveActors || []])) {
+    } else if (findBestNameMatch(newActor.name, [...Object.values(stage.getSave().actors), ...stage.getSave().reserveActors || [], ...stage.getSave().echoes.filter(e => e != null).map(e => ({name: e.name})) || []])) {
         console.log(`Discarding actor due to name similarity: ${newActor.name}`);
         return null;
     } else if (!newActor.getDescription()) {
