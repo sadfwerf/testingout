@@ -649,7 +649,7 @@ export async function generateActorDecor(actor: Actor, module: Module, stage: St
     if (!force && (Object.keys(actor.decorImageUrls).includes(module.type) && actor.decorImageUrls[module.type] && actor.decorImageUrls[module.type] !== module.getAttribute('baseImageUrl'))) {
         return actor.decorImageUrls[module.type];
     }
-    if (Object.keys(stage.imageGenerationPromises).includes(`actor/decor/${actor.id}/${module.type}`) || stage.getSave().disableEmotionImages) {
+    if (Object.keys(stage.imageGenerationPromises).includes(`actor/decor/${actor.id}/${module.type}`) || stage.getSave().disableDecorImages) {
         return '';
     }
 

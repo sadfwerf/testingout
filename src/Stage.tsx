@@ -46,12 +46,14 @@ export type SaveType = {
     timestamp?: number; // Time of last save
     disableTextToSpeech?: boolean;
     disableEmotionImages?: boolean;
+    disableDecorImages?: boolean;
     characterArtStyle?: ArtStyle;
     characterArtist?: string;
     attenuation?: string;
     reserveActors?: Actor[];
     language?: string;
     tone?: string;
+    disableImpersonation?: boolean;
 }
 
 export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateType, ConfigType> {

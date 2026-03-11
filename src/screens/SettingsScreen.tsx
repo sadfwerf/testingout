@@ -21,6 +21,8 @@ interface SettingsData {
     directorModuleRoleName: string;
     disableTextToSpeech: boolean;
     disableEmotionImages: boolean;
+    disableDecorImages: boolean;
+    disableImpersonation: boolean;
     characterArtStyle: ArtStyle;
     characterArtist: string;
     tagToggles: { [key: string]: boolean };
@@ -135,6 +137,8 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         directorModuleRoleName: saveFromStage.directorModule?.roleName || 'Maid',
         disableTextToSpeech: saveFromStage.disableTextToSpeech ?? false,
         disableEmotionImages: saveFromStage.disableEmotionImages ?? false,
+        disableDecorImages: saveFromStage.disableDecorImages ?? saveFromStage.disableEmotionImages ?? false,
+        disableImpersonation: saveFromStage.disableImpersonation ?? false,
         characterArtStyle: saveFromStage.characterArtStyle ?? 'original',
         characterArtist: saveFromStage.characterArtist ?? '',
         language: saveFromStage.language || 'English',
@@ -177,6 +181,8 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         save.bannedTags = Array.from(new Set([...mappedBans, ...writeIns]));
         save.disableTextToSpeech = settings.disableTextToSpeech;
         save.disableEmotionImages = settings.disableEmotionImages;
+        save.disableDecorImages = settings.disableDecorImages;
+        save.disableImpersonation = settings.disableImpersonation;
         save.characterArtStyle = settings.characterArtStyle;
         save.characterArtist = settings.characterArtist;
         save.language = settings.language;
@@ -636,6 +642,126 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                             }}
                                         >
                                             Disable Emotion Images
+                                        </span>
+                                    </motion.div>
+
+                                    {/* Disable Decor Images Toggle */}
+                                    <motion.div
+                                        whileHover={{ scale: 1.01 }}
+                                        whileTap={{ scale: 0.99 }}
+                                        onClick={() => setSettings(prev => ({ ...prev, disableDecorImages: !prev.disableDecorImages }))}
+                                        style={{
+                                            padding: '12px',
+                                            background: settings.disableDecorImages
+                                                ? 'rgba(0, 255, 136, 0.15)'
+                                                : 'rgba(0, 20, 40, 0.7)',
+                                            border: settings.disableDecorImages
+                                                ? '2px solid rgba(0, 255, 136, 0.5)'
+                                                : '2px solid rgba(255, 255, 255, 0.1)',
+                                            borderRadius: '8px',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                width: '20px',
+                                                height: '20px',
+                                                borderRadius: '4px',
+                                                background: settings.disableDecorImages ? '#00ff88' : 'rgba(255, 255, 255, 0.1)',
+                                                border: '2px solid ' + (settings.disableDecorImages ? '#00ff88' : 'rgba(255, 255, 255, 0.3)'),
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                flexShrink: 0,
+                                                transition: 'all 0.2s ease',
+                                            }}
+                                        >
+                                            {settings.disableDecorImages && (
+                                                <motion.span
+                                                    initial={{ scale: 0 }}
+                                                    animate={{ scale: 1 }}
+                                                    style={{
+                                                        color: '#002210',
+                                                        fontSize: '14px',
+                                                        fontWeight: 'bold',
+                                                    }}
+                                                >
+                                                    ✓
+                                                </motion.span>
+                                            )}
+                                        </div>
+                                        <span
+                                            style={{
+                                                color: settings.disableDecorImages ? '#00ff88' : 'rgba(255, 255, 255, 0.7)',
+                                                fontSize: '13px',
+                                                fontWeight: settings.disableDecorImages ? 'bold' : 'normal',
+                                            }}
+                                        >
+                                            Disable Decor Images
+                                        </span>
+                                    </motion.div>
+
+                                    {/* Disable Impersonation Toggle */}
+                                    <motion.div
+                                        whileHover={{ scale: 1.01 }}
+                                        whileTap={{ scale: 0.99 }}
+                                        onClick={() => setSettings(prev => ({ ...prev, disableImpersonation: !prev.disableImpersonation }))}
+                                        style={{
+                                            padding: '12px',
+                                            background: settings.disableImpersonation
+                                                ? 'rgba(0, 255, 136, 0.15)'
+                                                : 'rgba(0, 20, 40, 0.7)',
+                                            border: settings.disableImpersonation
+                                                ? '2px solid rgba(0, 255, 136, 0.5)'
+                                                : '2px solid rgba(255, 255, 255, 0.1)',
+                                            borderRadius: '8px',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                width: '20px',
+                                                height: '20px',
+                                                borderRadius: '4px',
+                                                background: settings.disableImpersonation ? '#00ff88' : 'rgba(255, 255, 255, 0.1)',
+                                                border: '2px solid ' + (settings.disableImpersonation ? '#00ff88' : 'rgba(255, 255, 255, 0.3)'),
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                flexShrink: 0,
+                                                transition: 'all 0.2s ease',
+                                            }}
+                                        >
+                                            {settings.disableImpersonation && (
+                                                <motion.span
+                                                    initial={{ scale: 0 }}
+                                                    animate={{ scale: 1 }}
+                                                    style={{
+                                                        color: '#002210',
+                                                        fontSize: '14px',
+                                                        fontWeight: 'bold',
+                                                    }}
+                                                >
+                                                    ✓
+                                                </motion.span>
+                                            )}
+                                        </div>
+                                        <span
+                                            style={{
+                                                color: settings.disableImpersonation ? '#00ff88' : 'rgba(255, 255, 255, 0.7)',
+                                                fontSize: '13px',
+                                                fontWeight: settings.disableImpersonation ? 'bold' : 'normal',
+                                            }}
+                                        >
+                                            Disable Impersonation
                                         </span>
                                     </motion.div>
 

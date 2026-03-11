@@ -588,7 +588,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                         `"Other character expressions can update in each other's entries—say, if they're reacting to something the speaker says—, but only one character can speak per entry."\n` +
                     `CHARACTER NAME: They nod in agreement, "If there's any dialogue at all, the entry must be attributed to the character speaking."\n` +
                     `NARRATOR: [CHARACTER NAME expresses RELIEF] Descriptive content or other scene events occurring around you, the player, can be attributed to NARRATOR. Dialogue cannot be included in NARRATOR entries.\n` +
-                    `${stage.getSave().player.name.toUpperCase()}: "Hey, Character Name," I greet them warmly. I'm the player, and my entries use first-person narrative voice, while all other skit entries use second-person to refer to me.\n` +
+                    (stage.getSave().disableImpersonation ? '' : `${stage.getSave().player.name.toUpperCase()}: "Hey, Character Name," I greet them warmly. I'm the player, and my entries use first-person narrative voice, while all other skit entries use second-person to refer to me.\n`) +
                     `\n` +
                 `Example Character Movement Format:\n` +
                     `CHARACTER NAME: [CHARACTER NAME moves to HERE] Character Name enters the room with a wave.\n` +
@@ -610,7 +610,9 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                 `\n\n  Follow the structure of the strict Example Script formatting above: ` +
                 `actions are depicted in prose and character dialogue in quotation marks. Characters present their own actions and dialogue, while other events within the scene are attributed to NARRATOR. ` +
                 `Although a loose script format is employed, the actual content should be professionally edited narrative prose. ` +
-                `Entries from the player, ${stage.getSave().player.name}, are written in first-person, while other entries consistently refer to ${stage.getSave().player.name} in second-person; all other characters are referred to in third-person, even in their own entries.` +
+                (stage.getSave().disableImpersonation ? 
+                    `New entries refer to the player, ${stage.getSave().player.name}, in second-person; all other characters are referred to in third-person, even in their own entries.` :
+                    `Entries from the player, ${stage.getSave().player.name}, are written in first-person, while other entries consistently refer to ${stage.getSave().player.name} in second-person; all other characters are referred to in third-person, even in their own entries.`) +
                 `\n\nTag Instruction:\n` +
                 `  Embedded within this script, you may employ special tags to trigger various game mechanics. ` +
                 `\n\n  Emotion tags ("[CHARACTER NAME expresses JOY]") should be used to indicate visible emotional shifts in a character's appearance using a single-word emotion name. ` +
@@ -847,6 +849,15 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                         entry.speaker = matched.name;
                     }
                 }
+
+                if (stage.getSave().disableImpersonation) {
+                    // If impersonation is undesired, find any entry where the speaker matches the player's name and drop all messages beyond that point.
+                    const playerEntryIndex = scriptEntries.findIndex(entry => entry.speaker.toLowerCase() === stage.getSave().player.name.toLowerCase());
+                    if (playerEntryIndex !== -1) {
+                        scriptEntries.splice(playerEntryIndex);
+                    }
+                }
+
 
                 // TTS for each entry's dialogue
                 const ttsPromises = scriptEntries.map(async (entry) => {

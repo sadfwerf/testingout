@@ -282,7 +282,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                     }}
                 >
                     {stage().isAuthenticated 
-                        ? 'v2026.03.09 - Alternative character appearances.'
+                        ? 'v2026.03.11 - Disable impersonation option.'
                         : (
                             <>
                                 This is an unofficial bot; for the latest version for PARC, visit:{' '}
