@@ -629,7 +629,7 @@ export async function generateEmotionImage(actor: Actor, emotion: Emotion, stage
         const emotionPrompt = stage.getSave().emotionPrompts?.[emotion] || EMOTION_PROMPTS[emotion];
         stage.imageGenerationPromises[`actor/${actor.id}`] = stage.makeImageFromImage({
             image: actor.getEmotionImageUrl('base', targetOutfitId) || '',
-            prompt: `${emotionPrompt}` + (stage.betaMode? '' : `, while maintaining their core appearance: ${actor.getDescription(targetOutfitId)}.`),
+            prompt: `${emotionPrompt}`,
             remove_background: true,
             transfer_type: 'edit'
         }, '');
