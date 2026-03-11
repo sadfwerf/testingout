@@ -60,28 +60,34 @@ export const EMOTION_MAPPING: {[key: string]: Emotion} = Object.entries(EMOTION_
     return acc;
 }, {} as {[key: string]: Emotion});
 
-// Give this character [an emotional expression, gesture, or pose]
-export const EMOTION_PROMPTS: {[emotion in Emotion]?: string} = {
-    neutral: 'a typical, neutral expression and pose',
-    approval: 'an approving, pleased expression or gesture',
-    anger: 'an angry expression and hostile gesture or pose',
-    confusion: 'a stunned, confused expression and uncertain gesture or pose',
-    desire: 'a flushed, seductive, or lustful expression and sexy or evocative pose',
-    disappointment: 'an unhappy, annoyed expression and deflated pose',
-    disgust: 'a disgusted, grossed-out expression and repulsed gesture or pose',
-    embarrassment: 'an embarrassed expression and awkward gesture or pose',
-    ecstasy: 'a flushed, euphoric expression and orgasmic, lusty pose',
-    fear: 'a shocked, terrified expression and defensive or cowering pose',
-    grief: 'a depressed, sobbing expression and mournful pose',
-    guilt: 'a remorseful, apologetic expression and diminished, contrite pose',
-    intrigue: 'a curious, intrigued expression and attentive pose',
-    joy: 'a happy, smiling expression and joyful, playful gesture or pose',
-    kindness: 'a kind, grateful expression and caring gesture or pose',
-    love: 'an adoring, lovestruck expression and affectionate gesture or pose',
-    nervousness: 'an anxious, uncertain expression and uneasy gesture or pose',
-    pride: 'a proud expression and confident, triumphant pose',
-    sadness: 'a sad, upset expression and dejected pose',
-    wonder: 'an inspired, wondrous expression and amazed or excited gesture or pose',
+export type EmotionPromptMap = {[emotion in Emotion]: string};
+
+// Full image-edit prompt used by Actor.generateEmotionImage.
+export const EMOTION_PROMPTS: EmotionPromptMap = {
+    neutral: 'Give this character a typical, neutral expression and pose',
+    approval: 'Give this character an approving, pleased expression or gesture',
+    anger: 'Give this character an angry expression and hostile gesture or pose',
+    confusion: 'Give this character a stunned, confused expression and uncertain gesture or pose',
+    desire: 'Give this character a flushed, seductive, or lustful expression and sexy or evocative pose',
+    disappointment: 'Give this character an unhappy, annoyed expression and deflated pose',
+    disgust: 'Give this character a disgusted, grossed-out expression and repulsed gesture or pose',
+    embarrassment: 'Give this character an embarrassed expression and awkward gesture or pose',
+    ecstasy: 'Give this character a flushed, euphoric expression and orgasmic, lusty pose',
+    fear: 'Give this character a shocked, terrified expression and defensive or cowering pose',
+    grief: 'Give this character a depressed, sobbing expression and mournful pose',
+    guilt: 'Give this character a remorseful, apologetic expression and diminished, contrite pose',
+    intrigue: 'Give this character a curious, intrigued expression and attentive pose',
+    joy: 'Give this character a happy, smiling expression and joyful, playful gesture or pose',
+    kindness: 'Give this character a kind, grateful expression and caring gesture or pose',
+    love: 'Give this character an adoring, lovestruck expression and affectionate gesture or pose',
+    nervousness: 'Give this character an anxious, uncertain expression and uneasy gesture or pose',
+    pride: 'Give this character a proud expression and confident, triumphant pose',
+    sadness: 'Give this character a sad, upset expression and dejected pose',
+    wonder: 'Give this character an inspired, wondrous expression and amazed or excited gesture or pose',
+};
+
+export function getDefaultEmotionPromptMap(): EmotionPromptMap {
+    return { ...EMOTION_PROMPTS };
 }
 
 export type EmotionPack = {[key: string]: string};

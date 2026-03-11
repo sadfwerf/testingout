@@ -150,7 +150,7 @@ export const FactionDetailScreen: FC<FactionDetailScreenProps> = ({ faction, sta
                     forceUpdate({});
                 } catch (error) {
                     console.error('Failed to regenerate module image:', error);
-                    alert('Failed to regenerate module image. Check console for details.');
+                    stage().showPriorityMessage('Failed to regenerate module image. Check console for details.');
                 } finally {
                     setRegeneratingImage(false);
                 }

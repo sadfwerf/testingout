@@ -626,9 +626,10 @@ export async function generateEmotionImage(actor: Actor, emotion: Emotion, stage
     const targetOutfitId = outfitId || actor.outfitId;
     if (actor.getEmotionImageUrl('base', targetOutfitId) && (!stage.imageGenerationPromises[`actor/${actor.id}`] || force) && (emotion == 'neutral' || !stage.getSave().disableEmotionImages)) {
         console.log(`Generating ${emotion} emotion image for actor ${actor.name}`);
+        const emotionPrompt = stage.getSave().emotionPrompts?.[emotion] || EMOTION_PROMPTS[emotion];
         stage.imageGenerationPromises[`actor/${actor.id}`] = stage.makeImageFromImage({
             image: actor.getEmotionImageUrl('base', targetOutfitId) || '',
-            prompt: `Give this character ${EMOTION_PROMPTS[emotion]}` + (stage.betaMode? '' : `, while maintaining their core appearance: ${actor.getDescription(targetOutfitId)}.`),
+            prompt: `${emotionPrompt}` + (stage.betaMode? '' : `, while maintaining their core appearance: ${actor.getDescription(targetOutfitId)}.`),
             remove_background: true,
             transfer_type: 'edit'
         }, '');

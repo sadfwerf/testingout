@@ -4,7 +4,7 @@ import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material
 import { Stage } from '../Stage';
 import { v4 as generateUuid } from 'uuid';
 import Actor, { Stat, ACTOR_STAT_ICONS, generateBaseActorImage, generateEmotionImage, generateActorDecor, VOICE_MAP, Outfit, ORIGINAL_OUTFIT_NAME } from '../actors/Actor';
-import { Emotion } from '../actors/Emotion';
+import { Emotion, EMOTION_PROMPTS } from '../actors/Emotion';
 import { GlassPanel, Title, Button, TextInput, Chip } from '../components/UIComponents';
 import { Close, Save, Image as ImageIcon } from '@mui/icons-material';
 import { scoreToGrade } from '../utils';
@@ -72,6 +72,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
         target: ImageTarget | null;
     }>({ open: false, target: null });
     const [baseRegenSource, setBaseRegenSource] = useState<BaseRegenSource>(() => (actor.avatarImageUrl ? 'avatar' : 'description'));
+    const [emotionPromptDraft, setEmotionPromptDraft] = useState('');
     const [isImageDropActive, setIsImageDropActive] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [confirmDialog, setConfirmDialog] = useState<{
@@ -236,7 +237,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                     forceUpdate({});
                 } catch (error) {
                     console.error(`Failed to regenerate ${emotion} emotion:`, error);
-                    alert(`Failed to regenerate ${emotion} emotion. Check console for details.`);
+                    stage().showPriorityMessage(`Failed to regenerate ${emotion} emotion. Check console for details.`);
                 } finally {
                     setRegeneratingImages(prev => {
                         const next = new Set(prev);
@@ -248,10 +249,33 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
         });
     };
 
+    const getEmotionPrompt = (emotion: Emotion): string => {
+        return stage().getSave().emotionPrompts?.[emotion] || EMOTION_PROMPTS[emotion];
+    };
+
+    const persistEmotionPrompt = (emotion: Emotion, prompt: string) => {
+        const trimmedPrompt = prompt.trim();
+        if (!trimmedPrompt) {
+            stage().showPriorityMessage('Emotion prompt cannot be empty.');
+            return false;
+        }
+
+        const save = stage().getSave();
+        save.emotionPrompts = {
+            ...(save.emotionPrompts || EMOTION_PROMPTS),
+            [emotion]: trimmedPrompt,
+        };
+        stage().saveGame();
+        return true;
+    };
+
     const handleOpenImageDialog = (target: ImageTarget) => {
         setImageDialog({ open: true, target });
         if (target === 'base') {
             setBaseRegenSource(actor.avatarImageUrl ? 'avatar' : 'description');
+            setEmotionPromptDraft('');
+        } else {
+            setEmotionPromptDraft(getEmotionPrompt(target));
         }
         setIsImageDropActive(false);
     };
@@ -263,12 +287,12 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
 
     const handleImageFile = async (file: File, target: ImageTarget) => {
         if (!file.type.startsWith('image/')) {
-            alert('Please select a valid image file.');
+            stage().showPriorityMessage('Please select a valid image file.');
             return;
         }
 
         if (!selectedOutfitId) {
-            alert('Select an outfit before uploading images.');
+            stage().showPriorityMessage('Select an outfit before uploading images.');
             return;
         }
 
@@ -295,7 +319,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
             forceUpdate({});
         } catch (error) {
             console.error(`Failed to upload ${target} image:`, error);
-            alert(`Failed to upload ${target} image. Check console for details.`);
+            stage().showPriorityMessage(`Failed to upload ${target} image. Check console for details.`);
         } finally {
             setIsUploadingImage(false);
             if (imageUploadInputRef.current) {
@@ -318,12 +342,12 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                 : `Outfit: ${sourceOutfit?.name || 'Unknown Outfit'}`;
 
         if (source === 'avatar' && !hasAvatarUrl) {
-            alert('Original avatar image is not available for this actor.');
+            stage().showPriorityMessage('Original avatar image is not available for this actor.');
             return;
         }
 
         if (source.startsWith('outfit:') && !sourceImageUrl) {
-            alert('The selected outfit does not have a base image.');
+            stage().showPriorityMessage('The selected outfit does not have a base image.');
             return;
         }
 
@@ -345,7 +369,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                 forceUpdate({});
             } catch (error) {
                 console.error('Failed to regenerate base image:', error);
-                alert('Failed to regenerate base image. Check console for details.');
+                stage().showPriorityMessage('Failed to regenerate base image. Check console for details.');
             } finally {
                 setRegeneratingImages(prev => {
                     const next = new Set(prev);
@@ -392,7 +416,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                     forceUpdate({});
                 } catch (error) {
                     console.error(`Failed to regenerate ${moduleType} decor:`, error);
-                    alert(`Failed to regenerate ${moduleType} decor. Check console for details.`);
+                    stage().showPriorityMessage(`Failed to regenerate ${moduleType} decor. Check console for details.`);
                 } finally {
                     setRegeneratingImages(prev => {
                         const next = new Set(prev);
@@ -1477,6 +1501,39 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                                     </select>
                                 </div>
                             )}
+                            {imageDialog.target && imageDialog.target !== 'base' && (
+                                <div>
+                                    <label
+                                        style={{
+                                            display: 'block',
+                                            color: '#00ff88',
+                                            fontSize: '13px',
+                                            fontWeight: 'bold',
+                                            marginBottom: '8px',
+                                        }}
+                                    >
+                                        Emotion Prompt
+                                    </label>
+                                    <textarea
+                                        value={emotionPromptDraft}
+                                        onChange={(e) => setEmotionPromptDraft(e.target.value)}
+                                        placeholder="Give this character ..."
+                                        style={{
+                                            width: '100%',
+                                            minHeight: '120px',
+                                            padding: '12px',
+                                            fontSize: '13px',
+                                            backgroundColor: 'rgba(0, 20, 40, 0.6)',
+                                            border: '2px solid rgba(0, 255, 136, 0.3)',
+                                            borderRadius: '5px',
+                                            color: '#e0f0ff',
+                                            fontFamily: 'inherit',
+                                            resize: 'vertical',
+                                            lineHeight: 1.5,
+                                        }}
+                                    />
+                                </div>
+                            )}
                             <Button
                                 onClick={() => {
                                     const target = imageDialog.target;
@@ -1484,6 +1541,9 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                                     if (target === 'base') {
                                         handleRegenerateBase(baseRegenSource);
                                     } else {
+                                        if (!persistEmotionPrompt(target, emotionPromptDraft)) {
+                                            return;
+                                        }
                                         handleRegenerateEmotion(target);
                                     }
                                 }}
