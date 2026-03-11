@@ -628,7 +628,7 @@ export async function generateEmotionImage(actor: Actor, emotion: Emotion, stage
         console.log(`Generating ${emotion} emotion image for actor ${actor.name}`);
         stage.imageGenerationPromises[`actor/${actor.id}`] = stage.makeImageFromImage({
             image: actor.getEmotionImageUrl('base', targetOutfitId) || '',
-            prompt: `Give this character ${EMOTION_PROMPTS[emotion]}, while maintaining their core appearance: ${actor.getDescription(targetOutfitId)}.`,
+            prompt: `Give this character ${EMOTION_PROMPTS[emotion]}` + (stage.betaMode? '' : `, while maintaining their core appearance: ${actor.getDescription(targetOutfitId)}.`),
             remove_background: true,
             transfer_type: 'edit'
         }, '');

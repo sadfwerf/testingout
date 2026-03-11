@@ -990,7 +990,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                             `\n#New Module Definition:#\n` +
                             `If the scene results in the conception of a new module for the station ` +
                             `(e.g., a character requests a specific new space or a new role is being established, which requires a dedicated workspace), ` +
-                            `this tag can be used to define the proposed module name and associated role:\n` +
+                            `this tag is used to define the proposed module name and distinct, associated role:\n` +
                             `[NEW MODULE: <moduleName> | ROLE <roleName> | DESCRIPTION <briefDescription>]\n` +
                             `Full Example:\n` +
                             `[NEW MODULE: MedBay | ROLE Medic | DESCRIPTION A small medical bay equipped for basic treatments and check-ups.]\n` +
