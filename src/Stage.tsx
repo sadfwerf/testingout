@@ -379,7 +379,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         }
         // Use smart rehydration to automatically detect and restore all nested objects
         const hydrated = smartRehydrate(save) as SaveType;
-        hydrated.emotionPrompts = this.normalizeEmotionPromptMap(hydrated.emotionPrompts);
+        if (hydrated) {
+            hydrated.emotionPrompts = this.normalizeEmotionPromptMap(hydrated.emotionPrompts);
+        }
         return hydrated;
     }
 
