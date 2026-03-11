@@ -1133,6 +1133,11 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                                                 continue;
                                             }
 
+                                            // Skip if role is undefined or "none" or "not applicable" or "n/a" or matches an existing module role name, using best match
+                                            if (!roleName || findBestNameMatch(roleName, [{name: 'NONE'}, {name: 'NOT APPLICABLE'}, {name: 'N/A'}, ...Object.values(MODULE_TEMPLATES).map(m => ({name: m.role || 'NOT APPLICABLE'}))])) {
+                                                console.log(`Skipping new module "${moduleName}" due to invalid or duplicate role "${roleName}".`);
+                                                continue;
+                                            }
                                             // Store the new module data
                                             skit.endNewModule = {
                                                 id: generateUuid(),
