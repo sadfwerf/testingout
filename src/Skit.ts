@@ -852,8 +852,10 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
 
                 if (stage.getSave().disableImpersonation) {
                     // If impersonation is undesired, find any entry where the speaker matches the player's name and drop all messages beyond that point.
+                    console.log(`Impersonation check`);
                     const playerEntryIndex = scriptEntries.findIndex(entry => entry.speaker.toLowerCase() === stage.getSave().player.name.toLowerCase());
                     if (playerEntryIndex !== -1) {
+                        console.log(`Player entry found at index ${playerEntryIndex}. Removing all subsequent entries to disable impersonation.`);
                         scriptEntries.splice(playerEntryIndex);
                     }
                 }
