@@ -351,7 +351,7 @@ const calculateActorXPosition = (actorIndex: number, totalActors: number, anySpe
 
 export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVerticalLayout }) => {
     const { setTooltip, clearTooltip } = useTooltip();
-    const typeOutSpeed = Math.max(1, stage().getSave().typeOutSpeed ?? stage().DEFAULT_TYPE_OUT_SPEED);
+    const typeOutSpeed = Math.max(0, stage().getSave().typeOutSpeed ?? stage().DEFAULT_TYPE_OUT_SPEED);
     const [index, setIndex] = React.useState<number>(0);
     const [inputText, setInputText] = React.useState<string>('');
     const [sceneEnded, setSceneEnded] = React.useState<boolean>(false);
@@ -398,8 +398,6 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
         const y = (e.clientY / window.innerHeight) * 100; // Convert to vh
         setMousePosition({ x, y });
     };
-
-    console.log(`Typeout speed: ${typeOutSpeed}`);
 
     // Calculate which actor should be hovered based on mouse proximity
     React.useEffect(() => {

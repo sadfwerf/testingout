@@ -42,7 +42,6 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         if (Number.isNaN(value)) {
             return defaultTypeOutSpeed;
         }
-
         return Math.min(maxTypeOutSpeed, Math.max(minTypeOutSpeed, value));
     };
 
@@ -806,7 +805,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                                 type="range"
                                                 min={minTypeOutSpeed}
                                                 max={maxTypeOutSpeed}
-                                                step={1}
+                                                step={5}
                                                 value={settings.typeOutSpeed}
                                                 onChange={(e) => setSettings(prev => ({
                                                     ...prev,
