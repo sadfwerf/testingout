@@ -399,6 +399,8 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
         setMousePosition({ x, y });
     };
 
+    console.log(`Typeout speed: ${typeOutSpeed}`);
+
     // Calculate which actor should be hovered based on mouse proximity
     React.useEffect(() => {
         if (!mousePosition) {
