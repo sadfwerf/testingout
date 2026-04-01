@@ -458,10 +458,8 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
 
         // Add all modules with their names
         const allModules = save.layout.getModulesWhere((_: any) => true);
-        console.log(allModules);
         allModules.forEach((module: any) => {
-            console.log(`Considering module for location options:`, module);
-            if (module && module.id && module.name) {
+            if (module && module.id && module.getAttribute('name')) {
                 // if module.type is 'quarters', label it as "Quarters: {owner name}" if it has an owner
                 if (module.type === 'quarters' && module.ownerId) {
                     const owner = save.actors[module.ownerId];
@@ -470,7 +468,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                         return;
                     }
                 }
-                options.push({ value: module.id, label: `Module: ${module.name}` });
+                options.push({ value: module.id, label: `Module: ${module.getAttribute('name')}` });
             }
         });
 
