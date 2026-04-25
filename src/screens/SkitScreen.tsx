@@ -1103,7 +1103,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                         }}
                         placeholder={
                             sceneEnded 
-                                ? 'Scene concluded' 
+                                ? 'Continue typing to defer this outcome...' 
                                 : (loading ? 'Generating...' : 'Type your course of action...')
                         }
                         disabled={loading}

@@ -567,22 +567,28 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
 }
 
 export async function generateSkitSummary(skit: SkitData, stage: Stage): Promise<string> {
-    const fullPrompt = `Summarize the following scene script in 2-3 sentences, focusing on the most important events and character interactions. The summary should be concise but informative, capturing the essence of the scene without going into excessive detail.\n\nScene Script:\n${buildScriptLog(skit, [], stage)}`;
-    const response = await stage.generator.textGen({
-                prompt: fullPrompt,
-                min_tokens: 10,
-                max_tokens: 500,
-                include_history: true,
-                stop: []
-            });
-    if (!response || !response.result) {
-        console.warn('No response or empty result from generator for skit summary.');
-        return '';
-    } else {
-        console.log(`Generated skit summary: ${response.result.trim()}`);
-        skit.summary = response.result.trim();
+    const summaryPrompt = generateSkitPrompt(skit, stage, 0,
+            `Scene Script for Analysis:\n${buildScriptLog(skit, skit.script, stage)}` +
+            `\n\nInstruction:\nAnalyze the preceding scene script output a "[SUMMARY: ...]" tag with a brief summary of the entire scene's key events or outcomes. `) +
+        `Example Response:\n` +
+        `[SUMMARY: A faction representative visits the PARC to make an offer to a patient, which they accept, leading to the patient's departure from the station to join that faction permanently.]`;
+     const endResponse = await stage.generator.textGen({
+        prompt: summaryPrompt,
+        min_tokens: 1,
+        max_tokens: 150,
+        include_history: true,
+        stop: ['#END']
+    });
+    if (endResponse && endResponse.result) {
+        // Strip double-asterisks. TODO: Remove this once other model issue is resolved.
+        endResponse.result = endResponse.result.replace(/\*\*/g, '');
+
+        const summaryMatch = /\[SUMMARY:\s*([^\]]+)\]/i.exec(endResponse.result);
+        skit.summary = summaryMatch ? summaryMatch[1].trim() : '';
+        console.log('Model determined scene should end. Summary:', skit.summary);
         return skit.summary;
     }
+    return '';
 }
 
 export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<{ entries: ScriptEntry[]; endScene: boolean; statChanges: { [actorId: string]: { [stat: string]: number } } }> {
