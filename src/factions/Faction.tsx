@@ -61,19 +61,19 @@ class Faction {
      */
     getReputationDescription(): string {
         if (this.reputation <= 0) {
-            return 'They have cut ties with the PARC.';
+            return 'They have cut ties with the Mansion.';
         } else if (this.reputation <= 1) {
-            return 'They have a very poor opinion of the PARC; if pushed, they will cut ties with the PARC entirely.';
+            return 'They have a very poor opinion of the Mansion; if pushed, they will cut ties with the Mansion entirely.';
         } else if (this.reputation <= 2) {
-            return 'They have a low opinion of the PARC and consider the relationship strained.';
+            return 'They have a low opinion of the Mansion and consider the relationship strained.';
         } else if (this.reputation <= 4) {
-            return 'They view the PARC with caution and maintain only necessary interactions.';
+            return 'They view the Mansion with caution and maintain only necessary interactions.';
         } else if (this.reputation <= 6) {
-            return 'They have a neutral, professional relationship with the PARC.';
+            return 'They have a neutral, professional relationship with the Mansion.';
         } else if (this.reputation <= 8) {
-            return 'They regard the PARC favorably and maintain a positive working relationship.';
+            return 'They regard the Mansion favorably and maintain a positive working relationship.';
         } else {
-            return 'They hold the PARC in high esteem and consider them a trusted partner.';
+            return 'They hold the Mansion in high esteem and consider them a trusted partner.';
         }
     }
 }
@@ -85,19 +85,7 @@ export async function loadReserveFaction(fullPath: string, stage: Stage): Promis
     
     // Similar banned word substitutes as Actor
     const bannedWordSubstitutes: {[key: string]: string} = {
-        'underage': 'young adult',
-        'adolescent': 'young adult',
-        'youngster': 'young adult',
-        'teen': 'young adult',
-        'highschooler': 'young adult',
         'child': 'child',
-        'toddler': 'toddler',
-        'infant': 'infant',
-        'kid': 'joke',
-        'baby': 'honey',
-        'minor': 'trivial',
-        'old-school': 'retro',
-        'high school': 'college',
         'school': 'college'
     };
     
@@ -130,8 +118,8 @@ export async function loadReserveFaction(fullPath: string, stage: Stage): Promis
     // Generate faction distillation using AI
     const generatedResponse = await stage.generator.textGen({
         prompt: `{{messages}}This is preparatory request for structured and formatted game content.` +
-            `\n\nBackground: This game is a futuristic multiverse setting that pulls characters from across eras and timelines and settings. ` +
-            `The player of this game, ${stage.getSave().player.name}, manages a space station called the Post-Apocalypse Rehabilitation Center, or PARC, which resurrects victims of a multiversal calamity and helps them adapt to a new life, ` +
+            `\n\nBackground: This game is a medieval fantasy setting that pulls characters from across eras and timelines and settings. ` +
+            `The player of this game, ${stage.getSave().player.name}, manages a villa called the Mansion, which kidnaps people from other universes and enslaves them, ` +
             `with the goal of placing these characters into a new role in this universe. These new roles are offered by external factions, generally in exchange for a finder's fee or reputation boost. ` +
             `Some roles are above board, while others may involve morally ambiguous or covert activities; many may even be illicit, sexual, or compulsory (essentially human trafficking). ` +
             `The player's motives and ethics are open-ended; they may be benevolent or self-serving, and the characters they interact with may respond accordingly. ` +
