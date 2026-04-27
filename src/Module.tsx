@@ -31,7 +31,7 @@ export const STATION_STAT_ICONS: Record<StationStat, any> = {
 };
 
 export const STATION_STAT_DESCRIPTIONS: Record<StationStat, string> = {
-    'Systems': 'Mechanical and structural health of the station',
+    'Systems': 'Magical and structural health of the mansion',
     'Comfort': 'Overall comfort and livability for inhabitants',
     'Provision': 'Availability of food, water, and essential supplies',
     'Security': 'Safety and defense against external and internal threats',
@@ -64,32 +64,32 @@ export enum StatRating {
 }
 export const STATION_STAT_PROMPTS: Record<StationStat, Record<StatRating, string>> = {
     'Systems': {
-        [StatRating.POOR]: 'The station is plagued by frequent mechanical failures, computer glitches, and structural issues, making it barely operational.',
-        [StatRating.BELOW_AVERAGE]: 'The station experiences occasional mechanical and electronic problems and minor structural concerns that need attention.',
-        [StatRating.AVERAGE]: 'The station is generally functional with standard maintenance keeping systems operational, if finicky.',
-        [StatRating.GOOD]: 'The station runs smoothly with well-maintained systems and minimal issues.',
-        [StatRating.EXCELLENT]: 'The station boasts state-of-the-art systems and impeccable structural integrity, operating flawlessly.'
+        [StatRating.POOR]: 'The mansion is plagued by frequent magical failures, spell glitches, and structural issues, making it barely operational.',
+        [StatRating.BELOW_AVERAGE]: 'The mansion experiences occasional mechanical and magical problems and minor structural concerns that need attention.',
+        [StatRating.AVERAGE]: 'The mansion is generally functional with standard maintenance keeping systems operational, if finicky.',
+        [StatRating.GOOD]: 'The mansion runs smoothly with well-maintained systems and minimal issues.',
+        [StatRating.EXCELLENT]: 'The mansion boasts state-of-the-art systems and impeccable structural integrity, operating flawlessly.'
     },
     'Comfort': {
         [StatRating.POOR]: 'Living conditions are harsh, filthy, and downright unhealthy, leading to widespread dissatisfaction among inhabitants.',
         [StatRating.BELOW_AVERAGE]: 'Living conditions are subpar, messy, and unpleasant, with many inhabitants feeling uneasy in their environment.',
         [StatRating.AVERAGE]: 'Living conditions and cleanliness are acceptable, providing a basic level of comfort for inhabitants.',
-        [StatRating.GOOD]: 'The station offers a comfortable, clean, and pleasant living environment for its inhabitants.',
+        [StatRating.GOOD]: 'The mansion offers a comfortable, clean, and pleasant living environment for its inhabitants.',
         [StatRating.EXCELLENT]: 'Inhabitants enjoy luxurious, impeccable, and healthful living conditions, enhancing their overall well-being.'
     },
     'Provision': {
         [StatRating.POOR]: 'Essential supplies are scarce, leading to frequent shortages and hardships for inhabitants.',
         [StatRating.BELOW_AVERAGE]: 'Provision levels are inconsistent, with occasional shortages of food, water, and supplies.',
-        [StatRating.AVERAGE]: 'The station maintains a steady supply of essentials, meeting the basic needs of inhabitants.',
+        [StatRating.AVERAGE]: 'The mansion maintains a steady supply of essentials, meeting the basic needs of inhabitants.',
         [StatRating.GOOD]: 'Provision levels are reliable, ensuring inhabitants have access to necessary supplies without issue.',
-        [StatRating.EXCELLENT]: 'The station is abundantly stocked with essentials, providing more than enough for all inhabitants.'
+        [StatRating.EXCELLENT]: 'The mansion is abundantly stocked with essentials, providing more than enough for all inhabitants.'
     },
     'Security': {
-        [StatRating.POOR]: 'The station is vulnerable to threats, with inadequate defenses and frequent security concerns.',
+        [StatRating.POOR]: 'The mansion is vulnerable to threats, with inadequate defenses and frequent security concerns.',
         [StatRating.BELOW_AVERAGE]: 'Security measures are weak, leading to occasional malfeasance and safety concerns among inhabitants.',
-        [StatRating.AVERAGE]: 'The station has standard security protocols in place; inhabitants may occasionally act out but are generally kept in check.',
+        [StatRating.AVERAGE]: 'The mansion has standard security protocols in place; inhabitants may occasionally act out but are generally kept in check.',
         [StatRating.GOOD]: 'Security is robust, effectively protecting the station and its inhabitants from threats.',
-        [StatRating.EXCELLENT]: 'The station boasts top-tier security systems, ensuring unparalleled safety and protection for all.'
+        [StatRating.EXCELLENT]: 'The mansion boasts top-tier security systems, ensuring unparalleled safety and protection for all.'
     },
     'Harmony': {
         [StatRating.POOR]: 'Social tensions run high and morale is non-existent, leading to frequent conflicts and a toxic atmosphere among inhabitants.',
@@ -101,9 +101,9 @@ export const STATION_STAT_PROMPTS: Record<StationStat, Record<StatRating, string
     'Wealth': { // Wealther is financial resources of the station and its Director and does not necessarily reflect the personal wealth of inhabitants nor the station's overall provision levels
         [StatRating.POOR]: 'Financial resources are critically low, potentially leading to severe budget cuts and creditor threats.',
         [StatRating.BELOW_AVERAGE]: 'Wealth levels are low, leading to budget constraints and creditor complaints.',
-        [StatRating.AVERAGE]: 'The Director maintains a stable financial footing, covering operational costs and bills.',
-        [StatRating.GOOD]: 'The Director is financially healthy, with ample resources in reserve.',
-        [StatRating.EXCELLENT]: 'The Director enjoys significant wealth, capable of lavish spending.'
+        [StatRating.AVERAGE]: 'The Master maintains a stable financial footing, covering operational costs and bills.',
+        [StatRating.GOOD]: 'The Master is financially healthy, with ample resources in reserve.',
+        [StatRating.EXCELLENT]: 'The Master enjoys significant wealth, capable of lavish spending.'
     }
 };
 
@@ -142,12 +142,12 @@ const randomAction = (module: Module, stage: Stage, setScreenType: (type: Screen
 export const MODULE_TEMPLATES: Record<ModuleType, ModuleIntrinsic> = {
     'echo chamber': {
         name: 'Echo Chamber',
-        skitPrompt: 'The echo chamber is where the player fuses echoes from the nearby black hole. Scenes in this room typically involve newly echofused patients as they get their bearings.',
-        imagePrompt: 'A futuristic lab with a bank of cryo pods along the left wall and some advanced computer systems against the right wall.',
+        skitPrompt: 'The echo chamber is where the player steals slaves from other realities using from the magic leyline. Scenes in this room typically involve newly echofused patients as they get their bearings.',
+        imagePrompt: 'A medieval portal room',
         role: 'Assistant',
-        roleDescription: `Manage station operations, monitoring the crew and supplementing their needs as the director's right hand.`,
-        baseImageUrl: 'https://media.charhub.io/2f92a39f-02be-41fd-b61d-56de04a9ecc4/62d30715-01e1-4581-beb4-61cf31134955.png',
-        defaultImageUrl: 'https://media.charhub.io/026ae01a-7dc8-472d-bfea-61548b87e6ef/84990780-8260-4833-ac0b-79c1a15ddb9e.png',
+        roleDescription: `Manage mansion operations, monitoring the slaves and supplementing their needs as the Master's right hand.`,
+        baseImageUrl: 'https://media.charhub.io/a6bfd218-4585-4070-8516-98b7137f4266/a5638c2e-5828-42c4-b579-bfe82892daee.png',
+        defaultImageUrl: 'https://media.charhub.io/a6bfd218-4585-4070-8516-98b7137f4266/a5638c2e-5828-42c4-b579-bfe82892daee.png',
         cost: {}, // Free; starter module
         action: (module: Module, stage: Stage, setScreenType: (type: ScreenType) => void) => {
             // Open the station management screen
@@ -162,14 +162,14 @@ export const MODULE_TEMPLATES: Record<ModuleType, ModuleIntrinsic> = {
     },
     comms: {
         name: 'Comms',
-        skitPrompt: `The comms room is the hub for all external and internal station communications. ` +
-            `This room is critical for communicating with external factions, with whom the PARC finds work for patients or conducts trade in exchange for desired resources. ` +
-            `Scenes here often involve receiving important messages, coordinating among the crew, or managing station-wide announcements.`,
-        imagePrompt: 'A sci-fi communications room dominated by a massive screen and associated computers and equipment, as well as some seating.',
-        role: 'Liaison',
-        roleDescription: `Handle all communications for the station, liaising with external entities and managing internal announcements.`,
-        baseImageUrl: 'https://media.charhub.io/e13c7784-9f5f-4ec2-a179-5bab52973b3a/f5e69e63-88bf-4f7d-919b-41c8a2adcc6c.png',
-        defaultImageUrl: 'https://media.charhub.io/9293912a-ebf4-4a0f-bac6-b9bfc82115f1/2ce9899c-a8cb-4186-9abb-fb8192ced8bd.png',
+        skitPrompt: `The Comms room is the hub for all external and internal Mansion communications using a magic scrying orb. ` +
+            `This room is critical for communicating with external factions, with whom the Mansion finds work for slaves or conducts trade in exchange for desired resources. ` +
+            `Scenes here often involve receiving important messages, coordinating among the Mansion, or managing Mansion-wide announcements.`,
+        imagePrompt: 'Magic Scrying ball sat upon a wooden table set in a medieval fantasy setting ',
+        role: 'Vessel',
+        roleDescription: `Handle all communications for the mansion, liaising with external entities and managing internal announcements.`,
+        baseImageUrl: 'https://media.charhub.io/b4c18a4c-65e8-4c27-9ef7-5c400ed14e3d/0d82a080-49fb-42e7-b5db-127463f79d05.png',
+        defaultImageUrl: 'https://media.charhub.io/b4c18a4c-65e8-4c27-9ef7-5c400ed14e3d/0d82a080-49fb-42e7-b5db-127463f79d05.png',
         cost: {}, // Free; starter module
         action: (module: Module, stage: Stage, setScreenType: (type: ScreenType) => void) => {
             // If there is a rep from a faction here, open a faction interaction skit
@@ -222,12 +222,12 @@ export const MODULE_TEMPLATES: Record<ModuleType, ModuleIntrinsic> = {
     },
     generator: {
         name: 'Generator',
-        skitPrompt: 'The generator room serves as an engineering hub of sorts, where many of the station\'s mechanical systems can be managed. Scenes here often involve the station\'s overall systems health and stability.',
-        imagePrompt: 'A sci-fi chamber dominated by a large, glowing generator, filled with humming machinery, control panels, and energy conduits.',
+        skitPrompt: 'The generator room serves as a magical engineering hub of sorts, where many of the mansion\'s magical systems can be managed. Scenes here often involve the mansions\'s overall systems health and stability.',
+        imagePrompt: 'A medieval fantasy chamber dominated by a large, glowing generator, filled with humming magic energy, control panels, and energy conduits.',
         role: 'Engineer',
-        roleDescription: `Oversee the station's mechanical systems, ensuring all modules receive adequate energy and maintenance to function optimally.`,
-        baseImageUrl: 'https://media.charhub.io/e53eeeb3-81a9-4020-a336-070c65edbb8a/4141ed00-9ab7-47f5-a4ce-21983b013e46.png',
-        defaultImageUrl: 'https://media.charhub.io/36c3c8b5-1abd-4766-8042-fa7a2af0ce42/6106d6ec-7746-4130-8e13-860c89a325c7.png',
+        roleDescription: `Oversee the mansion's magical systems, ensuring all modules receive adequate energy and maintenance to function optimally.`,
+        baseImageUrl: 'https://media.charhub.io/89ac93b7-9102-4c79-8a2d-77215511a14f/090bbc40-19a5-42b7-a196-795192149481.png',
+        defaultImageUrl: 'https://media.charhub.io/89ac93b7-9102-4c79-8a2d-77215511a14f/090bbc40-19a5-42b7-a196-795192149481.png',
         cost: {}, // Free; starter module
         action: randomAction,
         available: (stage: Stage) => {
@@ -237,10 +237,10 @@ export const MODULE_TEMPLATES: Record<ModuleType, ModuleIntrinsic> = {
     },
     quarters: {
         name: 'Quarters',
-        skitPrompt: 'Crew quarters are personal living spaces for station inhabitants. Scenes here often involve personal interactions:  revelations, troubles, interests, or relaxation.',
-        imagePrompt: 'A sci-fi living quarters with a bed, personal storage, and ambient lighting, reflecting the occupant\'s personality.',
-        baseImageUrl: 'https://media.charhub.io/5e39db53-9d66-459d-8926-281b3b089b36/8ff20bdb-b719-4cf7-bf53-3326d6f9fcaa.png', 
-        defaultImageUrl: 'https://media.charhub.io/99ffcdf5-a01b-43cf-81e5-e7098d8058f5/d1ec2e67-9124-4b8b-82d9-9685cfb973d2.png',
+        skitPrompt: 'Slave quarters are personal living spaces for Mansion inhabitants. Scenes here often involve personal interactions:  revelations, troubles, interests, or relaxation.',
+        imagePrompt: 'A dank dungeon cell set in a medieval fantasy setting with a bed, personal storage, and ambient lighting, reflecting the occupant\'s personality.',
+        baseImageUrl: 'https://media.charhub.io/85dec4c6-a3a9-4d1e-be5f-266bd9aa3171/27272f98-6ce9-467b-8aeb-e40eae5ead37.png', 
+        defaultImageUrl: 'https://media.charhub.io/4dbd4725-a3cf-49c7-b8d3-06f27199b8f7/16a39e65-3528-44e8-a043-9a0559b24f49.png',
         cost: {Provision: 1},
         action: (module: Module, stage: Stage, setScreenType: (type: ScreenType) => void) => {
             // Open the skit screen to speak to occupants
@@ -266,12 +266,12 @@ export const MODULE_TEMPLATES: Record<ModuleType, ModuleIntrinsic> = {
     },
     commons: {
         name: 'Hub',
-        skitPrompt: 'The hub is a place for patients and crew to gather, relax, eat, and interact. Scenes here often involve camaraderie, conflicts, and leisure activities among the crew.',
-        imagePrompt: 'A sci-fi common area with a large table, seating, and storage and kitchen or vending facilities along the far wall.',
-        role: 'Custodian',
-        roleDescription: `Maintain the station's communal areas, ensuring they remain inviting and well-stocked for crew relaxation and socialization.`,
-        baseImageUrl: 'https://media.charhub.io/0cee625e-73e7-43b3-86b3-a06c082e73a9/7f958523-48b9-40a4-ae67-59b0cea199d3.png', 
-        defaultImageUrl: 'https://media.charhub.io/041617bd-1cb3-424d-8e66-788e60edc80d/3a21ddd2-bd66-40b0-84ca-68b11d8218b2.png',
+        skitPrompt: 'The hub is a place for slaves and minions to gather, relax, eat, and interact. Scenes here often involve camaraderie, conflicts, and leisure activities among the crew.',
+        imagePrompt: 'A medieval feast hall with a large table and plentiful seating, at the head of the table sits a dark and imposing evil throne',
+        role: 'Cook',
+        roleDescription: `Maintain the Mansion's communal areas, ensuring they remain inviting and well-stocked for relaxation and socialization.`,
+        baseImageUrl: 'https://media.charhub.io/a5a9f346-2d56-40af-b1fc-5e7666551352/077a49e1-8701-48b8-be9c-56edf8a438f5.png', 
+        defaultImageUrl: 'https://media.charhub.io/a5a9f346-2d56-40af-b1fc-5e7666551352/077a49e1-8701-48b8-be9c-56edf8a438f5.png',
         cost: {Provision: 1},
         action: randomAction,
         available: (stage: Stage) => {
