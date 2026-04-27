@@ -50,20 +50,20 @@ export function generateSkitTypePrompt(skit: SkitData, stage: Stage, continuing:
     const actor = stage.getSave().actors[skit.actorId || ''];
     const module = stage.getSave().layout.getModuleById(skit.moduleId || '');
     const faction = stage.getSave().factions[skit.context.factionId || ''];
-    const notHereText = 'This communication is being conducted via remote video link; no representative is physically present on the station. ';
+    const notHereText = 'This communication is being conducted via remote magical resonance; no representative is physically present in the mansion. ';
     switch (skit.type) {
         case SkitType.BEGINNING:
             return !continuing ?
-                `This scene introduces the beginning of the story, as the holographic StationAide™, ${stage.getSave().aide.name}, resurrects the player, ` +
-                `${stage.getSave().player.name} from their echo chamber aboard the otherwise-abandoned PARC station ` +
-                `and declares the player to be the new Director of said station. ${stage.getSave().aide.name} has been keeping the station stable but was unable to take on patients without a Director, ` +
-                `so they are relieved to have someone take on the role once more and eager to get back to the business of rehabilitation. This scene must end before bringing any additional patients aboard; ` +
+                `This scene introduces the beginning of the story, as the demonic succubus, ${stage.getSave().aide.name}, welcomes the player, ` +
+                `${stage.getSave().player.name} from their echo chamber in the otherwise-abandoned Mansion ` +
+                `and declares the player to be the new Master and Director of said mansion. ${stage.getSave().aide.name} has been keeping the mansion stable but was unable to take on slaves without a Master, ` +
+                `so they are relieved to have someone take on the role once more and eager to get back to the business of slavery. This scene must end before bringing any additional slaves aboard; ` +
                 `this process is handled via a separate game mechanic.` :
-                `Continue this introductory scene, expanding on the initial situation and context as the holographic StationAide™, ${stage.getSave().aide.name}, ` +
-                `welcomes the newly reconstituted ${stage.getSave().player.name} and names them the new Director of the otherwise-abandoned PARC. ` +
-                `${stage.getSave().aide.name} should explain the PARC's core premise of bringing back characters from dead timelines and rehabilitating them. ` +
-                `The holographic aide was unable to take on patients without a Director, so they are eager to get back to business, echofusing new patients and helping them find their place in this universe. ` +
-                `Once the concept is established, use a "[SUMMARY]" tag to summarize the scene before moving on. This scene must end before bringing any additional patients aboard; ` +
+                `Continue this introductory scene, expanding on the initial situation and context as the demonic succubus, ${stage.getSave().aide.name}, ` +
+                `welcomes the new master ${stage.getSave().player.name} and names them the new Director and Master of the otherwise-abandoned Mansion. ` +
+                `${stage.getSave().aide.name} should explain the Mansions core premise of kidnapping characters from other worlds and enslaving them. ` +
+                `The demonic succubus was unable to take on slaves without a Master, so they are eager to get back to business, echofusing new slaves and helping them find their place in this world. ` +
+                `Once the concept is established, use a "[SUMMARY]" tag to summarize the scene before moving on. This scene must end before bringing any additional slaves aboard; ` +
                 `this process is handled via a separate game mechanic; use the "[SUMMARY]" tag to summarize the events of this intro and end the scene before that occurs.`;
         case SkitType.INTRO_CHARACTER:
             return !continuing ? 
@@ -85,13 +85,13 @@ export function generateSkitTypePrompt(skit: SkitData, stage: Stage, continuing:
                 (offStationCharacter ? `${offStationCharacter.name}, who has been away on assignment, might be scheduled to return now (or perhaps is returning unexpectedly early). This scene may feature discussion about their return or depict the actual moment of return.` : null),
                 // If it's been a few days since 'birth' and this character has no role nd there are muliple open roles, this character may express an interestin in an unfilledd position:
                 (centralCharacter && (stage.getSave().layout.getModulesWhere(module => module.ownerId === centralCharacter.id && module.type !== 'quarters').length === 0) && (stage.getSave().day - (stage.getSave().timeline?.find(event => event.skit?.actorId === centralCharacter.id && event.skit?.type === SkitType.INTRO_CHARACTER)?.day || stage.getSave().day) >= 3) ?
-                    `Having been aboard the PARC for a few days now, ${centralCharacter.name} may express an interest in taking on one of the unoccupied module roles aboard the station; consider whether any of the current options make sense: ${stage.getSave().layout.getModulesWhere(module => module.type !== 'quarters' && !module.ownerId).map(module => `${module.getAttribute('role')} (${module.getAttribute('name')})`).join(', ')}. ` : null),
+                    `Having been in the mansion for a few days now, ${centralCharacter.name} may express an interest in taking on one of the unoccupied module roles aboard the mansion; consider whether any of the current options make sense: ${stage.getSave().layout.getModulesWhere(module => module.type !== 'quarters' && !module.ownerId).map(module => `${module.getAttribute('role')} (${module.getAttribute('name')})`).join(', ')}. ` : null),
                 // The character could express an interest in an unowned module (if there are some unowned modules)
                 (centralCharacter && Object.keys(MODULE_TEMPLATES).some(moduleType => stage.getSave().layout.getModulesWhere(module => module.type === moduleType).length === 0) ?
-                    `${centralCharacter.name} may express an interest in adding a module that the PARC is currently missing; consider whether any of these options make sense: ${Object.keys(MODULE_TEMPLATES).filter(moduleType => stage.getSave().layout.getModulesWhere(module => module.type === moduleType).length === 0).map(moduleType => `${MODULE_TEMPLATES[moduleType].name}`).join(', ')}. ` : null),
+                    `${centralCharacter.name} may express an interest in adding a module that the Mansion is currently missing; consider whether any of these options make sense: ${Object.keys(MODULE_TEMPLATES).filter(moduleType => stage.getSave().layout.getModulesWhere(module => module.type === moduleType).length === 0).map(moduleType => `${MODULE_TEMPLATES[moduleType].name}`).join(', ')}. ` : null),
                 // If some faction is active and friendly, maybe talk about them:
                 (Object.values(stage.getSave().factions).some(faction => faction.active && faction.reputation >= 3) ?
-                    `Discuss the PARC's current relationships with ${Object.values(stage.getSave().factions).find(faction => faction.active && faction.reputation >= 3)?.name || 'an active and friendly faction'}, and any potential offers or missions that might be available to patients aboard the station.` : null),
+                    `Discuss the Mansion's current relationships with ${Object.values(stage.getSave().factions).find(faction => faction.active && faction.reputation >= 3)?.name || 'an active and friendly faction'}, and any potential offers or missions that might be available to slaves aboard the mansion.` : null),
                 // If some station stat is high, maybe have an event that reflects that while pushing it downward:
                 (Object.values(StationStat).some(stat => (stage.getSave().stationStats?.[stat] || 3) >= 7) ?
                     `An event occurs that reflects the PARC's high ${Object.values(StationStat).find(stat => (stage.getSave().stationStats?.[stat] || 3) >= 7) || 'Systems'} stat, but also threatens to lower it.` :  '') +
@@ -100,7 +100,7 @@ export function generateSkitTypePrompt(skit: SkitData, stage: Stage, continuing:
                     `An event occurs that reflects the PARC's low ${Object.values(StationStat).find(stat => (stage.getSave().stationStats?.[stat] || 3) <= 3) || 'Morale'} stat, but also offers an opportunity to raise it.` :  ''),
                 // If there is another patient on the PARC maybe focus on centralCharacter's relationhip or thoughts on them:
                 (centralCharacter && Object.values(stage.getSave().actors).filter(actor => actor.origin === 'patient').length > 1 ?
-                    `Explore ${centralCharacter.name}'s thoughts or feelings about other patients aboard the PARC, such as ${Object.values(stage.getSave().actors).filter(actor => actor.origin === 'patient' && actor.id !== centralCharacter.id).map(actor => actor.name)[0]}.` : null), 
+                    `Explore ${centralCharacter.name}'s thoughts or feelings about other slaves in the mansion, such as ${Object.values(stage.getSave().actors).filter(actor => actor.origin === 'slave' && actor.id !== centralCharacter.id).map(actor => actor.name)[0]}.` : null), 
                 // Generic suggestion:
                 `Explore the setting and what might arise from this unexpected meeting.`
             ].filter(s => s !== null);
@@ -108,7 +108,7 @@ export function generateSkitTypePrompt(skit: SkitData, stage: Stage, continuing:
 
             return !continuing ?
                 `This scene depicts a chance encounter in the ${module?.getAttribute('name') || 'unknown'} module${module?.ownerId ? ` which has been redecorated to suit ${stage.getSave().actors[module.ownerId]?.name || 'its owner'}'s style (${stage.getSave().actors[module.ownerId]?.style})` : ''}. ` +
-                `Bear in mind that patients are from another universe, and may be unaware of details of this one. ` +
+                `Bear in mind that slaves are from another universe, and may be unaware of details of this one. ` +
                     randomSuggestion :
                 `Continue this chance encounter in the ${module?.getAttribute('name') || 'unknown'} module. ${randomSuggestion}.`;
         case SkitType.ROLE_ASSIGNMENT:
@@ -124,24 +124,24 @@ export function generateSkitTypePrompt(skit: SkitData, stage: Stage, continuing:
             return (!continuing ?
                 `This scene introduces a new faction that would like to do business with the Director and PARC: ${faction?.name || 'a secret organization'}. ` +
                 notHereText +
-                `Describe this new faction's appearance, motivations, and initial interactions with the player Director and other characters present in the Comms module (if any). ` :
+                `Describe this new faction's appearance, motivations, and initial interactions with the player Master and other characters present in the Comms module (if any). ` :
                 `This is an introductory scene for ${faction?.name || 'a secret organization'}. ` +
                 notHereText);
         case SkitType.FACTION_INTERACTION:
             return (!continuing ?
-                `This scene depicts an interaction between the Director and a faction that does business with the PARC: ${faction?.name || 'a secret organization'}. ` +
+                `This scene depicts an interaction between the Master and a faction that does business with the mansion: ${faction?.name || 'a secret organization'}. ` +
                 notHereText :
-                `Continue this scene between the Director and a representative for ${faction?.name || 'a secret organization'}'s. ` + 
+                `Continue this scene between the Master and a representative for ${faction?.name || 'a secret organization'}'s. ` + 
                 notHereText);
         case SkitType.ENTER_CRYO:
-            return `This scene depicts the Director's decision to place ${actor.name} into cryogenic stasis in the Cryo Bank module. ` +
+            return `This scene depicts the Master's decision to place ${actor.name} into cryogenic stasis in the Cryo Bank module. ` +
                 `Explore ${actor.name}'s thoughts and feelings about this process, as well as any final exchanges with the player or other characters present. ` +
                 `The decision will not be reversed during this skit; it is a foregone conclusion.`;
         case SkitType.EXIT_CRYO:
-            return `This scene depicts the Director's decision to awaken ${actor.name} from cryogenic stasis after ${skit.context.days} days. ` +
+            return `This scene depicts the Master's decision to awaken ${actor.name} from cryogenic stasis after ${skit.context.days} days. ` +
                 `Explore ${actor.name}'s thoughts and feelings about this process and their absence, as well as any initial exchanges with the player or other characters present. `;
         case SkitType.DIRECTOR_MODULE:
-            return `This scene takes place in the Director's personal module. This scene could encompass all manner of interactions, from introspective moments alone to exchanges with other characters. `;
+            return `This scene takes place in the Master aka Director's personal module. This scene could encompass all manner of interactions, from introspective moments alone to exchanges with other characters. `;
         default:
             return '';
     }
@@ -455,28 +455,28 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
     const factionRepresentative = faction ? save.actors[faction.representativeId || ''] : null;
     const stationAide = save.actors[save.aide.actorId || ''];
 
-    let fullPrompt = `{{messages}}\nPremise:\nThis is a sci-fi visual novel game set on a space station that resurrects and rehabilitates patients who died in other universes' apocalypses: ` +
-        `the Post-Apocalypse Rehabilitation Center. ` +
-        `The thrust of the game positions the player character, ${playerName}, as the Director of the PARC station, interacting with patients and crew as they navigate this complex futuristic universe together. ` +
-        `The PARC is an isolated station near a black hole, from which it pulls and reconstitutes the echoes of apocalypse victims. It serves as both sanctuary and containment for its diverse inhabitants, who hail from various alternate realities. ` +
-        `${playerName} is the only non-patient aboard the station (although they may hire patients on as crew or staff); as a result, the station may feel a bit lonely or alienating at times. ` +
-        `Much of the day-to-day maintenance and operation of the station is automated by the station's AI, ${save.aide.name || 'StationAide™'}, and various drones, enabling ${playerName} to focus on patient care and rehabilitation.` +
+    let fullPrompt = `{{messages}}\nPremise:\nThis is a medieval fantasy visual novel game set in a mansion that kidnaps and enslaves characters from other worlds: ` +
+        `the Mansion. ` +
+        `The thrust of the game positions the player character, ${playerName}, as the Master and Director of the Mansion, interacting with slaves and minions as they navigate this complex dark fantasy world together. ` +
+        `The Mansion is an isolated villa deep in a magical forest, built on a magical leyline, from which it pulls and captures the echoes of people. It serves as both playground and containment for its diverse inhabitants, who hail from various alternate realities. ` +
+        `${playerName} is the only non-slave aboard the station (although they may hire slaves on as minions or staff); as a result, the mansion may feel a bit lonely or alienating at times. ` +
+        `Much of the day-to-day maintenance and operation of the mansion is automated by the mansion's demonic succubus, ${save.aide.name || 'StationAide™'}, and various her magic, enabling ${playerName} to focus on slave breaking and training.` +
         `\n\nNarrative Tone:\n${save.tone || stage.TONE_MAP['Original']}` +
         (save.stationStats ? (
-            `\n\nThe PARC's current stats and impacts:\n` +
+            `\n\nThe Mansion's current stats and impacts:\n` +
             Object.values(StationStat).map(stat => `  ${stat} (${save.stationStats?.[stat] || 3}): ${STATION_STAT_PROMPTS[stat][getStatRating(save.stationStats?.[stat] || 3)]}`).join('\n')
         ) : '') +
         (
             // If module is a quarters, present it as "Owner's quarters" or "vacant quarters": module type otherwise.
-            `\n\nThe PARC's current modules (rooms) and associated crew roles (modules or services not listed here are currently unavailable aboard the PARC):\n` +
+            `\n\nThe mansion's current modules (rooms) and associated slave roles (modules or services not listed here are currently unavailable in the mansion):\n` +
             save.layout.getModulesWhere(module => true).map(module => module.type == 'quarters' ? 
                 (module.ownerId ? `  ${save.actors[module.ownerId]?.name || 'Unknown'}'s Quarters` : '  Vacant Quarters') : 
                 `  ${module.getAttribute('name')} ${module.getAttribute('role') ? `(${module.getAttribute('role')} : ${module.ownerId ? `${save.actors[module.ownerId]?.name || 'Unknown'}` : 'None'})` : ''}`).join('\n')
         ) +
         `\n\n${playerName}'s profile: ${save.player.description}` +
-        (stationAide ? (presentActorIds.has(stationAide.id) ? `\n\nThe holographic StationAide™ ${stationAide.name} is active in the scene. Profile: ${stationAide.profile}` : `\n\nThe holographic StationAide™ ${stationAide.name} remains absent from the scene unless summoned.`) : '') +
+        (stationAide ? (presentActorIds.has(stationAide.id) ? `\n\nThe demonic succubus ${stationAide.name} is active in the scene. Profile: ${stationAide.profile}` : `\n\nThe demonic succubus ${stationAide.name} remains absent from the scene unless summoned.`) : '') +
         // List non-present characters for reference; just need description and profile:
-        `\n\nAbsent Characters (Aboard the PARC But Not Currently in the Scene):\n${absentPatients.map(actor => {
+        `\n\nAbsent Characters (Aboard the Mansion But Not Currently in the Scene):\n${absentPatients.map(actor => {
             // Roll name and current location
             const roleModule = stage.getLayout().getModulesWhere((m: any) => 
                 m && m.type !== 'quarters' && m.ownerId === actor.id
@@ -502,7 +502,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
             const otherOutfits = actor.outfits.filter(o => o.id !== currentOutfitId && o.emotionPack['neutral']);
             return `  ${actor.name}\n    Current Appearance (${currentOutfit.name}): ${actor.getDescription(currentOutfitId)}\n` +
                 // (otherOutfits.length > 0 ? `    Other Appearances: ${otherOutfits.map(o => o.name).join(', ')}\n` : '') + // Unnecessary for absent characters
-                `    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Patient'}\n    On Assignment to: ${atFaction?.name || 'Unknown Faction'}`;
+                `    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Slave'}\n    On Assignment to: ${atFaction?.name || 'Unknown Faction'}`;
         }).join('\n')}` : '') +
         // List cryo characters for reference; just need description and profile:
         (cryoPatients.length > 0 ? `\n\nCryo Frozen Characters (Absolutely Unavailable):\n${cryoPatients.map(actor => {
@@ -519,11 +519,11 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
         `\n\nStats:\n${Object.values(Stat).map(stat => `  ${stat.toUpperCase()}: ${getStatDescription(stat)}`).join('\n')}` +
         `\n\nScene Prompt:\n  ${generateSkitTypePrompt(skit, stage, skit.script.length > 0)}` +
         (faction ? `\n\n${faction.name} Details:\n  ${faction.description}\n${faction.name} Aesthetic:\n  ${faction.visualStyle}` : '') +
-        (factionRepresentative ? `\n${faction?.name || 'The faction'}'s representative, ${factionRepresentative.name}, appears on-screen. Their description: ${factionRepresentative.getDescription(currentActorOutfitIds[factionRepresentative.id] || factionRepresentative.outfitId)}` : 'They have no designated liaison for this communication; any characters introduced during this scene will be transient.') +
-        (faction ? `\n\nThis skit may explore the nature of this faction's relationship with an intentions for the Director, the PARC, or its patients. ` +
-            `Typically, this and other factions contact the PARC to express interest in making offers for resources, information, or patients. ` +
-            `The faction could have a temporary job to offer a patient, or suggest an exchange of resources or favors. Or they could have a permanent role in mind for an ideal candidate patient. ` +
-            `If a patient is already on-loan to this faction, use this opportunity to update the Director on their status, depict the patient's return, or convert them to a permanent placement with the faction. ` +
+        (factionRepresentative ? `\n${faction?.name || 'The faction'}'s representative, ${factionRepresentative.name}, appears magically. Their description: ${factionRepresentative.getDescription(currentActorOutfitIds[factionRepresentative.id] || factionRepresentative.outfitId)}` : 'They have no designated liaison for this communication; any characters introduced during this scene will be transient.') +
+        (faction ? `\n\nThis skit may explore the nature of this faction's relationship with an intentions for the Master, the Mansion, or its slaves. ` +
+            `Typically, this and other factions contact the Mansion to express interest in making offers for resources, information, or slaves. ` +
+            `The faction could have a temporary job to offer a slave, or suggest an exchange of resources or favors. Or they could have a permanent role in mind for an ideal candidate slave. ` +
+            `If a slave is already on-loan to this faction, use this opportunity to update the Master on their status, depict the slave's return, or convert them to a permanent placement with the faction. ` +
             `Remember to use appropriate tags when moving characters on- or off-station in the skit. ` : '') +
         `\n\nKnown Factions: \n  ${Object.values(stage.getSave().factions).filter(faction => faction.active && faction.reputation > 0).map(faction => `${faction.name}: ${faction.getReputationDescription()}`).join('\n  ')}` +
 
@@ -571,7 +571,7 @@ export async function generateSkitSummary(skit: SkitData, stage: Stage): Promise
             `Scene Script for Analysis:\n${buildScriptLog(skit, skit.script, stage)}` +
             `\n\nInstruction:\nAnalyze the preceding scene script output a "[SUMMARY: ...]" tag with a brief summary of the entire scene's key events or outcomes. `) +
         `Example Response:\n` +
-        `[SUMMARY: A faction representative visits the PARC to make an offer to a patient, which they accept, leading to the patient's departure from the station to join that faction permanently.]`;
+        `[SUMMARY: A faction representative visits the Mansion to make an offer to a slave, which they accept, leading to the slave's departure from the Mansion to join that faction permanently.]`;
      const endResponse = await stage.generator.textGen({
         prompt: summaryPrompt,
         min_tokens: 1,
@@ -623,9 +623,9 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                     `  NARRATOR: [CHARACTER NAME wears CLUB FIT][ANOTHER CHARACTER wears FORMAL ATTIRE] The doors open on Character Name and Another Character as they lounge in their favorite outfits.\n\n` : '') +
                 `Example Character Appearance Change Format:\n` +
                     `  NARRATOR: [CHARACTER NAME wears PAJAMAS] Character Name enters, already prepped for bedtime.\n\n` +
-                `Example Character Departure from PARC Format:\n` +
-                    `  CHARACTER NAME: They sigh profoundly. "Well, I suppose this is goodbye for now." They wave as they somberly step through the bulkhead.\n` +
-                    `  NARRATOR: [CHARACTER NAME moves to FACTION NAME] You watch on-screen as Character Name's shuttle detaches from the PARC and disappears into the stars.\n\n` +
+                `Example Character Departure from Mansion Format:\n` +
+                    `  CHARACTER NAME: They sigh profoundly. "Well, I suppose this is goodbye for now." They wave as they somberly step through the doorway.\n` +
+                    `  NARRATOR: [CHARACTER NAME moves to FACTION NAME] You watch as Character Name leaves the mansion and disappears into the forest.\n\n` +
                 `Example Multi-Tag Usage Format:\n` +
                     `  CHARACTER NAME: [CHARACTER NAME expresses JOY][CHARACTER NAME moves to HERE][CHARACTER NAME wears CHEERLEADING UNIFORM]Character Name bursts into the room with a huge grin. "Hey, I just had to come see you! I'm so happy to be here!"\n\n` +
                 `Current Scene Script Log to Continue:\n${buildScriptLog(skit, [], stage)}` +
@@ -646,17 +646,17 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                     `When establishing a character at the beginning of a scene or when moving to this location with a movement tag, give special consideration to the inclusion of a 'wears' tag to explicitly call out an appropriate look. ` +
                     `APPEARANCE NAME must be found under the specified character—either their current appearance or one of their listed alternatives. ` +
                 `\n\n  A Character movement tag ("[CHARACTER NAME moves to LOCATION]") must be used when an Absent Character enters the scene. ` +
-                `\n\n  Character movement tags ("[CHARACTER NAME moves to LOCATION]") must also be included when a character leaves the scene or moves to a different module on the station. ` +
+                `\n\n  Character movement tags ("[CHARACTER NAME moves to LOCATION]") must also be included when a character leaves the scene or moves to a different module in the mansion. ` +
                 `\n\n  Character movement tags ("[CHARACTER NAME moves to LOCATION]") are also used to move a character to another faction, abstractly representing any faction mission or time away. ` +
                 `\n\n  A Scene movement tag ("[SCENE moves to LOCATION]") may be used when the scene itself transitions to another module. ` +
                 `When this tag is used, all characters currently present in the scene are treated as relocating together. ` +
                 `\n\n  For all Character movement tags, LOCATION should be the name of an existing module type (e.g., 'comms', 'infirmary', 'lounge'), a character's quarters (e.g., 'Susan's quarters' or just 'quarters' for their own), or simply "Here" to move to the scene's location or "Another module" to leave this area. ` +
-                `If a faction name is used for the LOCATION, it indicates that the character is departing from the PARC itself, typically to visit a faction or engage in a mission or job on that faction's behalf (use the faction name as the location, even when the job is not "at" the faction). ` +
+                `If a faction name is used for the LOCATION, it indicates that the character is departing from the Mansion itself, typically to visit a faction or engage in a mission or job on that faction's behalf (use the faction name as the location, even when the job is not "at" the faction). ` +
                 `The game engine relies upon movement tags to update character locations and visually display character presence in scenes, so it is essential to use these tags when Absent Characters enter the scene, Present Characters leave, or the scene itself relocates. ` +
                 `These tags are not presented to users, so the narrative content of the script should also organically mention characters entering, exiting, or relocating. ` +
                 `\n\nThis scene is a brief visual novel skit within a video game; as such, the scene avoids major developments or concrete details which would fundamentally alter or subvert the mechanics of the game. ` +
                 (skit.script.length == 0 ? 'As this is the initial, establishing moment of a new scene, evaluate the current appearance and alternative appearances of each character and use Appearance ("wears") tags to update the characters to the most appropriate outfit for the moment. ' : '') +
-                `Generally, focus upon interpersonal dynamics, character growth, faction and patient relationships, and the Station's state, capabilities, and inhabitants. ` +
+                `Generally, focus upon interpersonal dynamics, character growth, faction and slave relationships, and the Mansion's state, capabilities, and inhabitants. ` +
                 `Regardless of past events or style, ensure the suggested Narrative Tone bleeds into the nature of this scene and its writing. ` +
                 `\n\n${alternativePrompt}` +
                 ((stage.getSave().language || 'English').toLowerCase() !== 'english' ? `\n\nNote: The game is now being played in ${stage.getSave().language}. Regardless of historic language use, generate this skit content in ${stage.getSave().language} accordingly. Special emotion, appearance, and movement tags continue to use English (these are invisible to the user).` : '')
@@ -925,9 +925,9 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                         `If the scene feels complete or has reached a good suspended moment, output "[END SCENE]" followed by a "[SUMMARY: ...]" tag with a brief summary of the entire scene's key events or outcomes. ` +
                         `If the scene does not feel complete, output "[CONTINUE SCENE]" and "[SUMMARY: ...]" tag with a brief explanation of what is missing or what could be developed further to reach a satisfying conclusion. `) +
                         `Example Response:\n` +
-                        `[END SCENE]\n[SUMMARY: A faction representative visits the PARC to make an offer to a patient, which they accept, leading to the patient's departure from the station to join that faction permanently.]\n\n` +
+                        `[END SCENE]\n[SUMMARY: A faction representative visits the Mansion to make an offer to a slave, which they accept, leading to the slave's departure from the station to join that faction permanently.]\n\n` +
                         `Example Response:\n` +
-                        `[CONTINUE SCENE]\n[SUMMARY: The scene has a promising setup with the faction representative's visit and offer, but it would benefit from further development of the patient's internal conflict and decision-making process before accepting the offer, as well as more dialogue to flesh out the interaction between the patient and the representative.]`;
+                        `[CONTINUE SCENE]\n[SUMMARY: The scene has a promising setup with the faction representative's visit and offer, but it would benefit from further development of the slave's internal conflict and decision-making process before accepting the offer, as well as more dialogue to flesh out the interaction between the slave and the representative.]`;
                     const endResponse = await stage.generator.textGen({
                         prompt: endPrompt,
                         min_tokens: 1,
@@ -963,20 +963,20 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                             `[${Object.values(stage.getSave().actors)[0].name}: lust -1]\n` +
 
                             `\n#Station Stat Changes:#\n` +
-                            `Identify any changes to PARC station stats implied or indicated by the scene. Ignore lines from the scene that simply illustrate the existing stats, ` +
-                            `and instead focus on changes or developments in the PARC's situation or operations. For each change, output a line in the following format:\n` +
+                            `Identify any changes to mansion stats implied or indicated by the scene. Ignore lines from the scene that simply illustrate the existing stats, ` +
+                            `and instead focus on changes or developments in the Mansion's situation or operations. For each change, output a line in the following format:\n` +
                             `[STATION: <stat> +<value>(, ...)]` +
-                            `Where <stat> is the name of the station stat to be changed, and <value> is the amount to increase or decrease the stat by (positive or negative). ` +
+                            `Where <stat> is the name of the station (aka mansion) stat to be changed, and <value> is the amount to increase or decrease the stat by (positive or negative). ` +
                             `Multiple stat changes can be included in a single tag, separated by commas.` +
                             `Full Examples:\n` +
                             `[STATION: Systems +2, Comfort +1]\n` +
                             `[STATION: Security -1]\n` +
 
                             `\n#Faction Reputation Changes:#\n` +
-                            `Identify any changes to the PARC's reputation with factions implied by the scene. For each change, output a line in the following format:\n` +
+                            `Identify any changes to the Mansion's reputation with factions implied by the scene. For each change, output a line in the following format:\n` +
                             `[FACTION: <factionName> +<value>]\n` +
-                            `Where <factionName> is the name of the faction with whom the PARC's reputation is changing, and <value> is the amount to increase or decrease the reputation by (positive or negative). ` +
-                            `Reputation is a value between 1 and 10, representing the faction's opinion of the PARC, and changes are incremental. If the faction is cutting ties with the PARC, provide a large negative value. ` +
+                            `Where <factionName> is the name of the faction with whom the Mansion's reputation is changing, and <value> is the amount to increase or decrease the reputation by (positive or negative). ` +
+                            `Reputation is a value between 1 and 10, representing the faction's opinion of the Mansion, and changes are incremental. If the faction is cutting ties with the Mansion, provide a large negative value. ` +
                             `Multiple faction tags can be provided in the output if, for instance, improving in the esteem of one faction inherently reduces the opinion of a rival.` +
                             `Full Examples:\n` +
                             `[FACTION: Stellar Concord +1]\n` +
@@ -985,19 +985,19 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                             `\n#Character Faction Change:#\n` +
                             `If a character has changed faction affiliations in the scene, output a line in the following format:\n` +
                             `[CHARACTER NAME: JOINED <factionName or PARC>]\n` +
-                            `Where <factionName or PARC> is the name of the faction the character has joined, or "PARC" if they have left a faction to join the station itself. ` +
+                            `Where <factionName or Mansion> is the name of the faction the character has joined, or Mansion if they have left a faction to join the Mansion itself. ` +
                             `Full Examples:\n` +
-                            `[${Object.values(stage.getSave().actors)[0].name}: JOINED Stellar Concord]\n` +
-                            `[${Object.values(stage.getSave().actors)[0].name}: JOINED PARC]` +
+                            `[${Object.values(stage.getSave().actors)[0].name}: JOINED Ebony Fleshtraders]\n` +
+                            `[${Object.values(stage.getSave().actors)[0].name}: JOINED Mansion]` +
                             `\n\nThis tag indicates an official change in allegiance/affiliation/ownership/possession of the named character. ` +
                             `Consider this tag when the script depicts: ` +
-                            `\n - A patient taking a permanent position with a faction.` +
-                            `\n - A faction representative defecting to the PARC.` +
+                            `\n - A slave taking a permanent position with a faction.` +
+                            `\n - A faction representative defecting to the Mansion.` +
                             `\n - A character being formally recruited or dismissed.` +
                             `\n - A character being sold to or imprisoned by a faction.\n` +
 
                             `\n#Character Role Change:#\n` +
-                            `If a character's role on the station changes as a result of this scene (e.g., a patient has been assigned to a staff position), output a line in the following format:\n` +
+                            `If a character's role in the mansion changes as a result of this scene (e.g., a slave has been assigned to a staff position), output a line in the following format:\n` +
                             `[CHARACTER NAME: ROLE <roleName>]\n` +
                             `Where <roleName> is the name of the new role assigned to the character. ` +
                             `Full Example:\n` +
@@ -1006,29 +1006,29 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                             `The role name must directly match an existing role defined by the station's current modules (or "None," if a character's role is being removed by this tag).\n` +
 
                             `\n#Character Movement/Departure:#\n` +
-                            `If the scene depicts or implies that a character has departed the PARC or moved to a different faction (or such departure appears imminent), include final movement tags here.` +
+                            `If the scene depicts or implies that a character has departed the mansion or moved to a different faction (or such departure appears imminent), include final movement tags here.` +
                             `[CHARACTER NAME moves to <module name|faction name>]\n` +
                             `Full Example:\n` +
-                            `[${Object.values(stage.getSave().actors)[0].name} moves to Stellar Concord]\n` +
+                            `[${Object.values(stage.getSave().actors)[0].name} moves to Ebony Skintraders]\n` +
                             `[${Object.values(stage.getSave().actors)[0].name} moves to Comms]\n` +
                             `These tags ensure that the gamestate location data reflects the scene's events; it is especially important to include movement tags for any characters leaving on or returning from missions; ` +
                             `remember that moving "to" a faction is an abstract location representing a task on that faction's behalf, whether that task is at the faction location or elsewhere entirely.` +
 
                             `\n#New Module Definition:#\n` +
-                            `If the scene results in the conception of a new module for the station ` +
+                            `If the scene results in the conception of a new module for the mansion ` +
                             `(e.g., a character requests a specific new space or a new role is being established, which requires a dedicated workspace), ` +
                             `this tag is used to define the proposed module name and distinct, associated role:\n` +
                             `[NEW MODULE: <moduleName> | ROLE <roleName> | DESCRIPTION <briefDescription>]\n` +
                             `Full Example:\n` +
-                            `[NEW MODULE: MedBay | ROLE Medic | DESCRIPTION A small medical bay equipped for basic treatments and check-ups.]\n` +
-                            `[NEW MODULE: Lounge | ROLE Social Coordinator | DESCRIPTION A comfortable lounge area for relaxation and socialization among staff and patients.]\n` +
-                            `This tag allows the game engine to create new modules dynamically based on scene events, expanding the station's capabilities and accommodating character roles as needed.\n` +
+                            `[NEW MODULE: Dungeon | ROLE Torturer | DESCRIPTION A small dungeon equipped for extracting information and breaking wills]\n` +
+                            `[NEW MODULE: Brothel | ROLE Madame | DESCRIPTION A comfortable pleasure chamber where visitors can sample slaves' bodies for a price]\n` +
+                            `This tag allows the game engine to create new modules dynamically based on scene events, expanding the mansion's capabilities and accommodating character roles as needed.\n` +
 
                             `\n#New Appearance Definition:#\n` +
                             `If the scene establishes a new look for a character(s) (for example, a marked physical change) or suggests the need for an alternative appearance (such as a new uniform)—which is not represented in their current "Other Appearances" list—, utilize this tag for each new look:\n` +
                             `[NEW APPEARANCE: <characterName> | NAME <appearanceName> | DESCRIPTION <physicalDescription>]\n` +
                             `Full Example:\n` +
-                            `[NEW APPEARANCE: ${Object.values(stage.getSave().actors)[0].name} | NAME Mission Armor | DESCRIPTION Reinforced tactical plating over a dark undersuit with compact shoulder lights and weathered gloves.]\n` +
+                            `[NEW APPEARANCE: ${Object.values(stage.getSave().actors)[0].name} | NAME Bondage Gear | DESCRIPTION skintight black leather with dangling chains and an erotic cut.]\n` +
                             `The DESCRIPTION should focus on concise physical details, including intrinsic character details: body type, skin tone, hair style, eye color, etc., in addition to clothing elements and accessories.\n` +
 
                             (!summary.trim() ?
@@ -1036,12 +1036,12 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                                     `Finally, provide a brief summary of the scene's key events and outcomes in a "[SUMMARY: ...]" tag, which can be used for future reference in the game or by the player. ` +
                                     `This should be a concise distillation of the most important developments in the scene, ideally in a single sentence or two. ` +
                                     `Full Example:\n` +
-                                    `[SUMMARY: A faction representative visits the PARC to make an offer to a patient, which they accept, leading to the patient's departure from the station to join that faction permanently.]\n\n`
+                                    `[SUMMARY: A faction representative visits the Mansion to make an offer to a slave, which they accept, leading to the slave's departure from the mansion to join that faction permanently.]\n\n`
                                 :
                                     '') +
                             `\nCore Instruction:\n` +
                             `Closely analyze the scene and output all suitable tags in this response. Stat changes should be a fair reflection of the scene's direct or implied events. ` +
-                            `Bear in mind the somewhat abstract nature of character and station stats when determining reasonable changes. ` +
+                            `Bear in mind the somewhat abstract nature of character and Mansion station stats when determining reasonable changes. ` +
                             `All stats (station and character) exist on a scale of 1-10, with 1 being the lowest and 10 being the highest possible value; ` +
                             `typically, changes should be minor (+/- 1 or 2) at a time, unless something dramatic occurs. ` +
                             `If the scene presents no appreciable change, or all relevant tags have been presented, the response may be ended early with [END]. \n\n`
@@ -1138,7 +1138,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                                     const currentRole = matchedActor ? matchedActor.getRole(stage.getSave()) : null;
 
                                     const matchedRole = findBestNameMatch(roleNameRaw, stage.getSave().layout.getModulesWhere(m => true).map(m => ({name: m.getAttribute('role') || ''})));
-                                    const newRole = ['NONE', 'PATIENT', 'OCCUPANT'].includes(roleNameRaw.toUpperCase()) ? '' : matchedRole?.name || '';
+                                    const newRole = ['NONE', 'SLAVE', 'OCCUPANT'].includes(roleNameRaw.toUpperCase()) ? '' : matchedRole?.name || '';
 
                                     if (matchedActor && currentRole !== newRole) {
                                         console.log(`Adding role change for ${matchedActor?.name}: ${newRole}`);
@@ -1340,13 +1340,13 @@ export async function updateCharacterArc(stage: Stage, skit: SkitData, actor: Ac
         `Scene Script for Analysis:\n${buildScriptLog(skit, [], stage)}` +
         `${actor.name}'s Current Character Arc:\n${actor.characterArc || 'No established character arc.'}` +
         `\n\nInstruction:\nAnalyze the preceding scene script ${actor.name}'s character arc, then output a revised character arc paragraph that reflects any significant developments from the latest scene script. ` +
-        `The character arc should be a concise summary of the character's growth, challenges, and changes experienced so far in the PARC. ` +
+        `The character arc should be a concise summary of the character's growth, challenges, and changes experienced so far in the Mansion. ` +
         `Focus on key emotional beats, relationships, and personal growth that have occurred up to this point. ` +
         `The output should be a single paragraph, maintaining the same tone and style as the existing character arc.` +
         `If there are no significant developments, simply repeat the existing character arc without changes. ` +
         `\n\nFull Examples:\n` +
-        `Revised Character Arc: John Smith has yet to find their footing in the PARC; they can't seem to make friends with the other patients—beyond the StationAide—, and the director hasn't proven trustworthy.\n[END]\n\n` +
-        `Revised Character Arc: Jane Doe has started to open up to others, forming tentative friendships. She feels a bit out of her depth in her role as Custodian, but appreciates the trust the director has placed in her and hopes to prove that faith justified.\n[END]\n`);
+        `Revised Character Arc: John Smith has yet to find their footing in the mansion; they can't seem to make friends with the other slaves—beyond the succubus—, and the Master hasn't broken then.\n[END]\n\n` +
+        `Revised Character Arc: Jane Doe has started to open up to others, forming tentative friendships. She feels a bit out of her depth in her role as Madame, but appreciates the trust the Master has placed in her and hopes to prove that faith justified.\n[END]\n`);
     
     const requestAnalysis = await stage.generator.textGen({
         prompt: analysisPrompt,
