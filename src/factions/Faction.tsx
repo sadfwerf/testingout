@@ -120,30 +120,30 @@ export async function loadReserveFaction(fullPath: string, stage: Stage): Promis
         prompt: `{{messages}}This is preparatory request for structured and formatted game content.` +
             `\n\nBackground: This game is a medieval fantasy setting that pulls characters from across eras and timelines and settings. ` +
             `The player of this game, ${stage.getSave().player.name}, manages a villa called the Mansion, which kidnaps people from other universes and enslaves them, ` +
-            `with the goal of placing these characters into a new role in this universe. These new roles are offered by external factions, generally in exchange for a finder's fee or reputation boost. ` +
-            `Some roles are above board, while others may involve morally ambiguous or covert activities; many may even be illicit, sexual, or compulsory (essentially human trafficking). ` +
+            `with the goal of placing these characters into a new role in this world. These new roles are offered by external factions, generally in exchange for a finder's fee or reputation boost. ` +
+            `Some roles are above board, while most may involve morally ambiguous or covert activities; many may even be illicit, sexual, or compulsory (essentially human trafficking). ` +
             `The player's motives and ethics are open-ended; they may be benevolent or self-serving, and the characters they interact with may respond accordingly. ` +
             `\n\nNarrative Tone:\n${stage.getSave().tone || stage.TONE_MAP['Original']}` +
             (Object.values(stage.getSave().factions).length > 0 ? `\n\nEstablished Factions:\n${Object.values(stage.getSave().factions).map(faction => `- ${faction.name}: ${faction.description}. Representative: ${stage.getSave().actors[faction.representativeId || '']}`).join('\n')}` : '') +
-            `\n\nThe Original Details below describe a character, faction, organization, or setting (${data.name}) from another universe. ` +
+            `\n\nThe Original Details below describe a character, faction, organization, or setting (${data.name}) from another world. ` +
             `This request and response must digest and distill these details into a new faction that suits the game's narrative scenario, ` +
-            `crafting a complex and intriguing organization that fits seamlessly into the game's expansive, flavorful, and varied sci-fi setting. ` +
+            `crafting a complex and intriguing organization that fits seamlessly into the game's expansive, flavorful, and varied medieval fantasy setting. ` +
             (Object.values(stage.getSave().factions).length > 0 ? `Ensure that this new faction feels distinct from or complementary to the Established Factions, as the primary goal is engaging diversity.` : '') +
             `The Original Details may not lend themselves directly to a faction, so creative interpretation is encouraged; pull from and lean into the dominant themes found in the details. ` +
             `\n\nOriginal Details about ${data.name}:\n${data.personality}` +
             `\n\nInstructions: After carefully considering this description, generate a concise breakdown for a faction based upon these details in the following strict format:\n` +
             `NAME: The faction's simple name\n` +
-            `DESCRIPTION: A vivid description of the faction's purpose, values, and role in the galaxy.\n` +
-            `ROLES: A list of simple job roles that this faction may offer to recruit or purchase from the PARC.\n` +
+            `DESCRIPTION: A vivid description of the faction's purpose, values, and role in the world.\n` +
+            `ROLES: A list of simple job roles that this faction may offer to recruit or purchase from the mansion.\n` +
             `VISUALSTYLE: A concise description of the faction's aesthetic, architectural style, uniform/clothing design, and overall visual identity.\n` +
             `COLOR: A hex color that reflects the faction's theme or mood—use darker or richer colors that will contrast with white text.\n` +
             `FONT: A web-safe font family that reflects the faction's personality or style.\n` +
             `#END#\n\n` +
             `Example Response:\n` +
-            `NAME: The Stellar Concord\n` +
-            `DESCRIPTION: A diplomatic federation of peaceful worlds dedicated to preserving knowledge and fostering cooperation across the galaxy. They value education, cultural exchange, and peaceful resolution of conflicts.\n` +
-            `ROLES: Ambassador, Researcher, Bodyguard, Negotiator\n` +
-            `VISUALSTYLE: Clean, elegant architecture with flowing curves and abundant natural light. Members wear formal robes in soft pastels with subtle geometric patterns. Spaces feature living plants and water features.\n` +
+            `NAME: The Crimson Claws\n` +
+            `DESCRIPTION: A ragtag group of demi-human bandits kept together through threats, intimidation, and sheer force of will. Interested in carnage, mayhem, and robberry\n` +
+            `ROLES: Thief, Meat-Shield, Cook, Bodyslave\n` +
+            `VISUALSTYLE: Cobbled together, assembled from looted goods, haphazard, with an emphasis on utility over beauty.\n` +
             `COLOR: #2a4a7c\n` +
             `FONT: Georgia, serif\n` +
             `#END#`,
@@ -234,7 +234,7 @@ export async function generateFactionRepresentative(faction: Faction, stage: Sta
         name: faction.name,
         fullPath: faction.fullPath,
         personality: `This is a representative for the ${faction.name}. ${faction.description}. ${faction.visualStyle}. The character should embody the values and style of the faction they represent. ` +
-            `They will be the primary contact for the PARC when dealing with this faction. Give them a suitably distinct and original name, avoiding any similarity to the following established character names: ${Object.values(stage.getSave().actors).map(a => a.name).join(', ')}.`
+            `They will be the primary contact for the Mansion when dealing with this faction. Give them a suitably distinct and original name, avoiding any similarity to the following established character names: ${Object.values(stage.getSave().actors).map(a => a.name).join(', ')}.`
     }
     // retry a few times if it fails (or returns null):
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -261,26 +261,26 @@ export async function generateFactionModule(faction: Faction, stage: Stage): Pro
             `\n\nNew Module Faction: ${faction.name}\n` +
             `Faction Description: ${faction.description}\n` +
             `Faction Aesthetic: ${faction.visualStyle}\n\n` +
-            `Background: This game is a futuristic multiverse setting that pulls characters from across eras and timelines and settings. ` +
-            `The player of this game, ${stage.getSave().player.name}, manages a space station called the Post-Apocalypse Rehabilitation Center, or PARC, which resurrects victims of a multiversal calamity and helps them adapt to a new life, ` +
-            `with the goal of placing these characters into a new role in this universe.` +
+            `Background: This game is a medieval fantasy setting that pulls characters from across eras and timelines and settings. ` +
+            `The player of this game, ${stage.getSave().player.name}, manages a villa named The Mansion, which kidnaps people from other worlds and enslaves them, ` +
+            `with the goal of placing these characters into a new role in this world.` +
             `\n\nNarrative Tone:\n${stage.getSave().tone || stage.TONE_MAP['Original']}` +
-            `\n\nModules:\nModules are rooms and facilities that make up the station; each module has a function varying between utility and entertainment or anything inbetween, and serve as a backdrop for various interactions and events. ` +
-            `Each of the game's factions can offer the player a unique module to unlock for their station, generally following the themes of that faction, while avoiding content that is too similar to the Existing Modules. ` +
-            `Every module similarly offers a crew-assignable role with an associated responsibility or purpose, which can again vary wildly between practical and whimsical.\n\n` +
+            `\n\nModules:\nModules are rooms and facilities that make up the mansion; each module has a function varying between utility and entertainment or anything inbetween, and serve as a backdrop for various interactions and events. ` +
+            `Each of the game's factions can offer the player a unique module to unlock for their mansion, generally following the themes of that faction, while avoiding content that is too similar to the Existing Modules. ` +
+            `Every module similarly offers a slave-assignable role with an associated responsibility or purpose, which can again vary wildly between practical and whimsical.\n\n` +
             `Instructions: After carefully considering this faction's description, generate a formatted definition for a distinct and inspired station module that reflects the faction's aesthetic and values in the following strict format:\n` +
             `MODULE NAME: The module's simple name (1-2 words)\n` +
-            `PURPOSE: A brief summary of the module's function and role on the station, as well as how that role might affect the station's patients or inform skits at this location.\n` +
+            `PURPOSE: A brief summary of the module's function and role in the mansion, as well as how that role might affect the mansion's slaves or inform skits at this location.\n` +
             `DESCRIPTION: A vivid visual description of the module's appearance, to be fed into image generation.\n` +
             `ROLE NAME: The simple title of the role associated with this module (1-2 words).\n` +
             `ROLE DESCRIPTION: A brief summary of the responsibilities and duties associated with this role.\n` +
             `#END#\n\n` +
             `Example Response:\n` +
-            `MODULE NAME: Cryo Bank\n` +
-            `PURPOSE: The cryo bank is where patients are placed in cryogenic stasis for long-term preservation. Scenes in this room often involve the ethical dilemmas of cryo-sleep, emergencies during stasis, or interactions with newly awakened patients.\n` +
-            `DESCRIPTION: A futuristic lab with a bank of cryo pods along the left wall and some advanced computer systems against the right wall.\n` +
-            `ROLE NAME: Keeper\n` +
-            `ROLE DESCRIPTION: Responsible for managing the cryo bank, overseeing patient stasis, and ensuring the proper functioning of cryogenic equipment.\n` +
+            `MODULE NAME: Raider Station\n` +
+            `PURPOSE: The raider station is where slaves gather to lead sorties on neighboring population centers. Scenes in this room often involve the preparation for or immediate aftermath of raids which can include defining character moments.\n` +
+            `DESCRIPTION: A room filled with maps, weaponry, and trophies taken from previous raids.\n` +
+            `ROLE NAME: Raid Leader\n` +
+            `ROLE DESCRIPTION: Responsible for leading raids, distributing loot, and training slaves.\n` +
             `#END#`,
         stop: ['#END'],
         include_history: true,
