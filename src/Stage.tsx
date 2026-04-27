@@ -485,10 +485,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         
         const placeholderModule = {
             name: this.getSave().directorModule.name,
-            skitPrompt: 'Crew quarters are personal living spaces for station inhabitants. Scenes here often involve personal interactions:  revelations, troubles, interests, or relaxation.',
-            imagePrompt: 'A sci-fi living quarters with a bed, personal storage, and ambient lighting, reflecting the occupant\'s personality.',
-            baseImageUrl: 'https://media.charhub.io/5e39db53-9d66-459d-8926-281b3b089b36/8ff20bdb-b719-4cf7-bf53-3326d6f9fcaa.png', 
-            defaultImageUrl: 'https://media.charhub.io/99ffcdf5-a01b-43cf-81e5-e7098d8058f5/d1ec2e67-9124-4b8b-82d9-9685cfb973d2.png',
+            skitPrompt: 'Slave quarters are personal living spaces for boardinghouse inhabitants. Scenes here often involve personal interactions:  revelations, troubles, interests, or relaxation.',
+            imagePrompt: 'medieval fantasy living quarters with a bed, personal storage, and ambient lighting, reflecting the occupant\'s personality.',
+            baseImageUrl: 'https://media.charhub.io/85dec4c6-a3a9-4d1e-be5f-266bd9aa3171/27272f98-6ce9-467b-8aeb-e40eae5ead37.png', 
+            defaultImageUrl: 'https://media.charhub.io/4dbd4725-a3cf-49c7-b8d3-06f27199b8f7/16a39e65-3528-44e8-a043-9a0559b24f49.png',
             role: this.getSave().directorModule.roleName,
             roleDescription: '',
             cost: {
@@ -658,7 +658,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 const actorData = {
                     name: save.aide.name,
                     fullPath: '',
-                    personality: `The PARC's StationAide™ holographic assistant: ${save.aide.description}`
+                    personality: `The Mansion's succubus demonic assistant: ${save.aide.description}`
                 }
                 // Retry a few times if it fails (or returns null):
                 for (let attempt = 0; attempt < 3; attempt++) {
