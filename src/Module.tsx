@@ -658,39 +658,39 @@ export async function generateModule(name: string, stage: Stage, additionalInfor
     // Generate a module from a module name, some arbitrary details, and a role title
     const generatedResponse = await stage.generator.textGen({
         prompt: `{{messages}}This is preparatory request for structured and formatted game content. ` +
-            `The goal is to define a module/room for a space station management game, based primarily upon the name, and potentially some other information, ` +
+            `The goal is to define a module/room for a medieval fantasy slave training game, based primarily upon the name, and potentially some other information, ` +
             `while generally avoiding duplicating existing content below. ` +
             `\n\nExisting Modules:\n${Object.entries(MODULE_TEMPLATES).map(([type, mod]) => `- ${type}: Role - ${mod.role || 'N/A'}`).join('\n')}` +
             `\n\nNew Module Name: ${name}\n` +
             (role ? `New Role Name: ${role}\n` : '') +
             (additionalInformation ? `Additional Information: ${additionalInformation || 'N/A'}\n` : '') +
-            `\nBackground: This game is a futuristic multiverse setting that pulls characters from across eras and timelines and settings. ` +
-            `The player of this game, ${stage.getSave().player.name}, manages a space station called the Post-Apocalypse Rehabilitation Center, or PARC, which resurrects victims of a multiversal calamity and helps them adapt to a new life, ` +
-            `with the goal of placing these characters into a new role in this universe. ` +
-            `Modules are rooms and facilities that make up the PARC station; each module has a function varying between utility and entertainment or anything inbetween, and serve as a backdrop for various interactions and events. ` +
+            `\nBackground: This game is a medieval fantasy multiverse setting that pulls characters from across eras and timelines and settings. ` +
+            `The player of this game, ${stage.getSave().player.name}, manages a villa called the Mansion, which captures people from different worlds and enslaves them to do the bidding of the Master, ` +
+            `with the goal of placing these characters into a new role in this world. ` +
+            `Modules are rooms and facilities that make up the Mansion; each module has a function varying between utility and entertainment or anything inbetween, and serve as a backdrop for various interactions and events. ` +
             `Every module offers a crew-assignable role with an associated responsibility or purpose, which can again vary wildly between practical and whimsical.\n\n` +
             `Instructions: After carefully considering the provided details, generate a formatted definition for a distinct and inspired station module that suits the prompt, outputting it in the following strict format:\n` +
             `MODULE NAME: The module's simple name (1-2 words)\n` +
-            `PURPOSE: A brief summary of the module's function and role on the station, as well as how that role might affect the station's patients or inform skits at this location.\n` +
+            `PURPOSE: A brief summary of the module's function and role on the station, as well as how that role might affect the mansion's slaves or inform skits at this location.\n` +
             `DESCRIPTION: A vivid visual description of the module's appearance, to be fed into image generation.\n` +
             `ROLE NAME: The simple title of the role associated with this module (1-2 words).\n` +
             `ROLE DESCRIPTION: A brief summary of the responsibilities and duties associated with this role.\n` +
             `COST: The resource cost to build this module, specified as 1-3 points of one or two station stats. Available stats are: Systems, Comfort, Provision, Security, Harmony, Wealth. Format as "StatName X, StatName Y" (e.g., "Wealth 2, Systems 1" or "Provision 2").\n` +
             `#END#\n\n` +
             `Example Response:\n` +
-            `MODULE NAME: Cryo Bank\n` +
-            `PURPOSE: The cryo bank is where patients are placed in cryogenic stasis for long-term preservation. Scenes in this room often involve the ethical dilemmas of cryo-sleep, emergencies during stasis, or interactions with newly awakened patients.\n` +
-            `DESCRIPTION: A futuristic lab with a bank of cryo pods along the left wall and some advanced computer systems against the right wall.\n` +
-            `ROLE NAME: Keeper\n` +
-            `ROLE DESCRIPTION: Responsible for managing the cryo bank, overseeing patient stasis, and ensuring the proper functioning of cryogenic equipment.\n` +
+            `MODULE NAME: Breeding Pits\n` +
+            `PURPOSE: The breeding pits are where slaves are placed to be forcibly impregnated by their Master or other slaves\n` +
+            `DESCRIPTION: A dank dark room lined with manacles built into the walls\n` +
+            `ROLE NAME: Breeder\n` +
+            `ROLE DESCRIPTION: Responsible for ensuring all slaves are fertilized at the right time, increasing likelihood of impregnation.\n` +
             `COST: Harmony 2, Systems 2\n` +
             `#END#\n\n` +
             `Example Response:\n` +
             `MODULE NAME: Gym\n` +
-            `PURPOSE: The gym is the station's fitness center, where crew members work out and maintain their physical health. Scenes here often involve training sessions, fitness challenges, or ways to boost crew morale through physical activity.\n` +
-            `DESCRIPTION: A sci-fi gym with advanced exercise equipment and weightlifting stations.\n` +
+            `PURPOSE: The gym is the mansions fitness center, where slaves work out and maintain their physical health. Scenes here often involve training sessions, fitness challenges, or ways to boost slave morale through physical activity.\n` +
+            `DESCRIPTION: A medieval fantasy gym with advanced exercise equipment and weightlifting stations.\n` +
             `ROLE NAME: Trainer\n` +
-            `ROLE DESCRIPTION: Oversees the physical fitness and training of the crew, ensuring they remain in peak condition for their duties aboard the station.\n` +
+            `ROLE DESCRIPTION: Oversees the physical fitness and training of slaves, ensuring they remain in peak condition for their duties in the mansion.\n` +
             `COST: Comfort 1, Wealth 1\n` +
             `#END#`,
         stop: ['#END'],
@@ -801,7 +801,7 @@ export async function generateModule(name: string, stage: Stage, additionalInfor
 export async function generateModuleImage(module: ModuleIntrinsic, stage: Stage): Promise<void> {
     // Start with a base image:
     const baseImageUrl = await stage.makeImage({
-        prompt: `The detailed interior of an unoccupied futuristic space station module/room. The design should reflect the following description: ${module.imagePrompt}. ` +
+        prompt: `The detailed interior of an unoccupied medieval dark fantasy module/room. The design should reflect the following description: ${module.imagePrompt}. ` +
             `Regardless of aesthetic, the image is rendered in a vibrant, painterly style with thick smudgy lines.`,
         aspect_ratio: AspectRatio.SQUARE
     }, '');
