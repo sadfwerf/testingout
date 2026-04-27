@@ -6,8 +6,7 @@ import Faction from './factions/Faction';
 import { ScreenType } from './screens/BaseScreen';
 import { Build, Hotel, Restaurant, Security, AttachMoney, Favorite } from '@mui/icons-material';
 
-export type ModuleType = 'echo chamber' | 'comms' | 'generator' | 'quarters' | 'commons' | 'infirmary' | 'gym' | 'lounge' | 'armory' 
-    | 'cryo bank' | 'aperture' | 'director module'
+export type ModuleType = 'echo chamber' | 'comms' | 'generator' | 'quarters' | 'commons' | 'infirmary' | 'aperture' | 'director module'
     
     | string; // Allow string for modded modules
 
@@ -281,86 +280,17 @@ export const MODULE_TEMPLATES: Record<ModuleType, ModuleIntrinsic> = {
     },
     infirmary: {
         name: 'Infirmary',
-        skitPrompt: 'The infirmary is the station\'s medical facility, where crew members receive treatment and care. Scenes here often involve medical incidents, health concerns, or ways to improve the crew\'s health and well-being.',
-        imagePrompt: 'A futuristic medical bay with treatment beds and advanced diagnostic equipment.',
+        skitPrompt: 'The infirmary is the mansion\'s medical facility, where slaves receive treatment and care. Scenes here often involve medical incidents, health concerns, or ways to improve the slave\'s health and well-being.',
+        imagePrompt: 'A medieval fantasy infirmary with treatment beds and diagnostic equipment.',
         role: 'Medic',
         roleDescription: `Provide medical care and emergency response for the crew, ensuring their health and well-being.`,
-        baseImageUrl: 'https://media.charhub.io/b62f09a0-7a42-47e7-b0be-f54dfac00f33/fe73db8c-2cb6-4744-9464-6d26ecf776c0.png',
-        defaultImageUrl: 'https://media.charhub.io/5e9c6119-51b4-4a2c-a06c-bb8f1c20aea1/c471f9ba-ea5f-495b-8e44-e02723a04938.png',
+        baseImageUrl: 'https://media.charhub.io/f2a7b07b-6537-48c6-93a3-25bdf95c550b/b9f770c4-f1d5-459d-b2d0-09071763d24c.png',
+        defaultImageUrl: 'https://media.charhub.io/f2a7b07b-6537-48c6-93a3-25bdf95c550b/b9f770c4-f1d5-459d-b2d0-09071763d24c.png',
         cost: {Provision: 1, Comfort: 1},
         action: randomAction,
         available: (stage: Stage) => {
             // Can have only one in stage.getSave().layout:
             return stage.getLayout().getModulesWhere(m => m.type === 'infirmary').length === 0;
-        }
-    },
-    gym: {
-        name: 'Gym',
-        skitPrompt: 'The gym is the station\'s fitness center, where crew members work out and maintain their physical health. Scenes here often involve training sessions, fitness challenges, or ways to boost crew morale through physical activity.',
-        imagePrompt: 'A sci-fi gym with advanced exercise equipment and weightlifting stations.',
-        role: 'Trainer',
-        roleDescription: `Oversee the physical fitness and training of the crew, ensuring they remain in peak condition for their duties aboard the station.`,
-        baseImageUrl: 'https://media.charhub.io/349ca504-7b7e-4afd-8a52-43dd7b166bc7/d91d37e1-eb9d-4211-a28f-16b8d4d341d1.png',
-        defaultImageUrl: 'https://media.charhub.io/7f6bd636-804e-493c-8442-e691856a6703/589a3768-f0da-43c0-ab70-8b7d403f5a62.png',
-        cost: {Comfort: 1, Wealth: 1},
-        action: randomAction,
-        available: (stage: Stage) => {
-            // Can have only one in stage.getSave().layout:
-            return stage.getLayout().getModulesWhere(m => m.type === 'gym').length === 0;
-        }
-    },
-    lounge: {
-        name: 'Lounge',
-        skitPrompt: 'The lounge is a recreational area for the station crew, where they can unwind with a drink and socialize. Scenes here often involve leisure activities, social interactions, and ways to boost crew morale through relaxation and entertainment.',
-        imagePrompt: 'A sci-fi lounge with comfortable seating, a wet bar, and entertainment systems.',
-        role: 'Concierge',
-        roleDescription: `Oversee the station's leisure facilities, ensuring crew members have a comfortable and enjoyable environment to relax and socialize.`,
-        baseImageUrl: 'https://media.charhub.io/323b12cf-8687-4475-851b-7c1bdeff447a/0b71cb51-c160-47c9-848e-fab183eb9314.png',
-        defaultImageUrl: 'https://media.charhub.io/2e8bf9fc-67a8-499d-85ec-8198efafeb14/1da73912-d19e-4f4e-aeda-19688e16e474.png',
-        cost: {Comfort: 2, Wealth: 1},
-        action: randomAction,
-        available: (stage: Stage) => {
-            // Require at least three patients on board to build a lounge:
-            const patientCount = Object.values(stage.getSave().actors).filter(a => a.origin === 'patient').length;
-            // Can have only one in stage.getSave().layout:
-            return stage.getLayout().getModulesWhere(m => m.type === 'lounge').length === 0 && patientCount >= 3;
-        }
-    },
-    armory: {
-        name: 'Armory',
-        skitPrompt: 'The armory is the station\'s defense hub, where weapons and security systems are managed. Scenes here often involve security protocols, incident reports, or ways to enhance the station\'s safety and defense capabilities.',
-        imagePrompt: 'A sci-fi armory with weapon lockers, equipment racks, and security equipment.',
-        role: 'Officer',
-        roleDescription: `Manage the station's defenses and ensure the safety of the crew against external and internal threats.`,
-        baseImageUrl: 'https://media.charhub.io/7ccddb81-bed6-4395-80c6-912fe2932e53/c58a4f32-270d-4b62-b2b4-bcc1a3dedc94.png',
-        defaultImageUrl: 'https://media.charhub.io/090e6a42-62f9-46da-9a29-09de8b469f05/eedf310f-af7a-40b4-ac56-686f4daa5c07.png',
-        cost: {Systems: 1, Wealth: 1},
-        action: randomAction,
-        available: (stage: Stage) => {
-            // Require to have met at least three factions:
-            const metFactionsCount = Object.values(stage.getSave().factions).filter(f => f.active).length;
-            // Can have only one in stage.getSave().layout:
-            return stage.getLayout().getModulesWhere(m => m.type === 'armory').length === 0 && metFactionsCount >= 3;
-        }
-    },
-    'cryo bank': {
-        name: 'Cryo Bank',
-        skitPrompt: 'The cryo bank is where patients are placed in cryogenic stasis for long-term preservation. Scenes in this room often involve the ethical dilemmas of cryo-sleep, emergencies during stasis, or interactions with newly awakened patients.',
-        imagePrompt: 'A futuristic lab with a bank of cryo pods along the left wall and some advanced computer systems against the right wall.',
-        role: 'Keeper',
-        roleDescription: `Oversee the cryogenic systems and ensure the safety and well-being of patients in stasis.`,
-        baseImageUrl: 'https://media.charhub.io/439bcef8-3c12-4c07-b1fb-5659c0111edb/16e89185-6266-4ccf-a010-cf80090fcb08.png',
-        defaultImageUrl: 'https://media.charhub.io/6dbe1503-e10a-48e4-875d-cc7a5038bc43/be0aa5dc-70b6-4573-ae48-c37d8e90022f.png',
-        cost: {Harmony: 2, Systems: 2},
-        action: (module: Module, stage: Stage, setScreenType: (type: ScreenType) => void) => {
-            // Open the cryo management screen
-            console.log("Opening cryo screen from cryo bank.");
-            setScreenType(ScreenType.CRYO);
-        },
-        available: (stage: Stage) => {
-            // Can have only one in stage.getSave().layout, and only once there are at least five patients:
-            const patientCount = Object.values(stage.getSave().actors).filter(a => a.origin === 'patient').length;
-            return stage.getLayout().getModulesWhere(m => m.type === 'cryo bank').length === 0 && patientCount >= 5;
         }
     },
     'aperture': {
