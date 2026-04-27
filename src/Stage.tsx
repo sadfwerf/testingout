@@ -79,24 +79,13 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     readonly DEFAULT_TYPE_OUT_SPEED = 20;
     readonly bannedTagsDefault = [
         'FUZZ',
-        'child',
-        'teenager',
-        'narrator',
-        'underage',
-        'multi-character',
-        'multiple characters',
-        'nonenglish',
-        'non-english',
-        'famous people',
-        'celebrity',
-        'real person',
         'feral'
     ];
     // At least one of these is required for a character search; some sort of gender helps indicate that the card represents a singular person.
-    readonly actorTags = ['male', 'female', 'woman', 'man', 'masculine', 'feminine', 'non-binary', 'trans', 'genderqueer', 'genderfluid', 'agender', 'androgyne', 'intersex', 'futa', 'futanari', 'hermaphrodite'];
+    readonly actorTags = ['male', 'female', 'tomboy', 'goth', 'dubcon', 'noncon', 'corruption', 'woman', 'man', 'masculine', 'feminine', 'non-binary', 'trans', 'genderqueer', 'genderfluid', 'agender', 'androgyne', 'intersex', 'futa', 'futanari', 'hermaphrodite'];
     // At least one of these is required for a faction search; helps indicate that the card has a focus on setting or tone.
-    readonly factionTags = ['sci-fi', 'science fiction', 'cyberpunk', 'post-apocalyptic', 'dystopian', 'space', 'alien', 'robot', 'setting', 'world', 'narrator', 'scenario'];
-    readonly characterSearchQuery = `https://inference.chub.ai/search?first=${this.FETCH_AT_TIME}&exclude_tags={{EXCLUSIONS}}&page={{PAGE_NUMBER}}&tags={{SEARCH_TAGS}}&sort=random&asc=false&include_forks=false&nsfw=true&nsfl=false` +
+    readonly factionTags = ['fantasy', 'medieval', 'magic', 'magical', 'elf', 'setting', 'world', 'narrator', 'scenario'];
+    readonly characterSearchQuery = `https://inference.chub.ai/search?first=${this.FETCH_AT_TIME}&exclude_tags={{EXCLUSIONS}}&page={{PAGE_NUMBER}}&tags={{SEARCH_TAGS}}&sort=random&asc=false&include_forks=false&nsfw=true&nsfl=true` +
         `&nsfw_only=false&require_images=false&require_example_dialogues=false&require_alternate_greetings=false&require_custom_prompt=false&exclude_mine=false&min_tokens=200&max_tokens=5000` +
         `&require_expressions=false&require_lore=false&mine_first=false&require_lore_embedded=false&require_lore_linked=false&my_favorites=false&inclusive_or=true&recommended_verified=false&count=false&min_tags=3`;
     readonly characterDetailQuery = 'https://inference.chub.ai/api/characters/{fullPath}?full=true';
@@ -174,8 +163,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         console.log(characters);
         // voice_id is in the data but not on the Character type. However, it is the only field in the character data that is irreplicable by other means.
         // I believe it is the only way to verify that this chat involves the official PARC bot.
-        this.isAuthenticated = Object.values(characters).some((c: any) => c['voice_id'] === '8d387ea3-6918-4628-927a-fe024745bea2');
-        console.log('Authenticated:', this.isAuthenticated);
+        this.isAuthenticated
 
         console.log(chatState);
         this.saves = chatState?.saves || [];
@@ -201,9 +189,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             directorModule: {name: 'Director\'s Cabin', roleName: 'Maid'},
             aide: {
                 name: 'Soji', 
-                description: `Your holographic assistant is acutely familiar with the technical details of your Post-Apocalypse Rehabilitation Center, so you don't have to be! ` +
-                `Your StationAide™ comes pre-programmed with a friendly and non-condescending demeanor that will leave you feeling empowered and never patronized; ` +
-                `your bespoke projection comes with an industry-leading feminine form in a pleasing shade of default blue, but, as always, StationAide™ remains infinitely customizable to suit your tastes.`}, 
+                description: `Your demonic assistant is acutely familiar with the magical details of your Mansion, so you don't have to be! ` +
+                `Your demonic assistant comes with a friendly and non-condescending demeanor that will leave you feeling empowered and never patronized; ` +
+                `your bespoke projection comes with a beguiling feminine form in a pleasing shade of default blue, but, as always, StationAide™ remains infinitely customizable to suit your tastes.`}, 
             echoes: [], actors: {}, factions: {}, layout: layout, day: 1, turn: 0, currentSkit: undefined, typeOutSpeed: this.DEFAULT_TYPE_OUT_SPEED, reserveActors: [], emotionPrompts: getDefaultEmotionPromptMap() };
 
         // ensure at least one save exists and has a layout
