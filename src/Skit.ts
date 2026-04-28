@@ -99,7 +99,7 @@ export function generateSkitTypePrompt(skit: SkitData, stage: Stage, continuing:
                 (Object.values(StationStat).some(stat => (stage.getSave().stationStats?.[stat] || 3) <= 3) ?
                     `An event occurs that reflects the Mansion's low ${Object.values(StationStat).find(stat => (stage.getSave().stationStats?.[stat] || 3) <= 3) || 'Morale'} stat, but also offers an opportunity to raise it.` :  ''),
                 // If there is another slave in the Mansion maybe focus on centralCharacter's relationhip or thoughts on them:
-                (centralCharacter && Object.values(stage.getSave().actors).filter(actor => actor.origin === 'patient').length > 1 ?
+                (centralCharacter && Object.values(stage.getSave().actors).filter(actor => actor.origin === 'slave').length > 1 ?
                     `Explore ${centralCharacter.name}'s thoughts or feelings about other slaves in the mansion, such as ${Object.values(stage.getSave().actors).filter(actor => actor.origin === 'slave' && actor.id !== centralCharacter.id).map(actor => actor.name)[0]}.` : null), 
                 // Generic suggestion:
                 `Explore the setting and what might arise from this unexpected meeting.`
