@@ -1,3 +1,9 @@
+# 'ADJACENT' | 'NONE' | 'COVER' | 'FULLSCREEN'
+# COVER overlays the chat history but leaves the input box
+# FULLSCREEN covers everything except the header
+position: 'FULLSCREEN'
+
+
 config_schema:
   type: object
   properties:
