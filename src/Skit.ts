@@ -40,7 +40,7 @@ export interface SkitData {
     context: any;
     summary?: string;
     endProperties?: { [actorId: string]: { [stat: string]: number } }; // Stat changes to apply when scene ends
-    endFactionChanges?: { [actorId: string]: string }; // Faction ID changes to apply when scene ends ('' for PARC)
+    endFactionChanges?: { [actorId: string]: string }; // Faction ID changes to apply when scene ends ('' for Mansion)
     endRoleChanges?: { [actorId: string]: string }; // Role changes to apply when scene ends (role name or '' for None)
     endNewModule?: { id: string; moduleName: string; roleName: string; description: string }; // New module to be created post-skit
     endNewAppearances?: { id: string; actorId: string; appearanceName: string; description: string }[]; // New character appearances to be created post-skit
@@ -94,11 +94,11 @@ export function generateSkitTypePrompt(skit: SkitData, stage: Stage, continuing:
                     `Discuss the Mansion's current relationships with ${Object.values(stage.getSave().factions).find(faction => faction.active && faction.reputation >= 3)?.name || 'an active and friendly faction'}, and any potential offers or missions that might be available to slaves aboard the mansion.` : null),
                 // If some station stat is high, maybe have an event that reflects that while pushing it downward:
                 (Object.values(StationStat).some(stat => (stage.getSave().stationStats?.[stat] || 3) >= 7) ?
-                    `An event occurs that reflects the PARC's high ${Object.values(StationStat).find(stat => (stage.getSave().stationStats?.[stat] || 3) >= 7) || 'Systems'} stat, but also threatens to lower it.` :  '') +
+                    `An event occurs that reflects the Mansion's high ${Object.values(StationStat).find(stat => (stage.getSave().stationStats?.[stat] || 3) >= 7) || 'Systems'} stat, but also threatens to lower it.` :  '') +
                 // If some station stat is low, maybe have an event that reflects that while pushing it up:
                 (Object.values(StationStat).some(stat => (stage.getSave().stationStats?.[stat] || 3) <= 3) ?
-                    `An event occurs that reflects the PARC's low ${Object.values(StationStat).find(stat => (stage.getSave().stationStats?.[stat] || 3) <= 3) || 'Morale'} stat, but also offers an opportunity to raise it.` :  ''),
-                // If there is another patient on the PARC maybe focus on centralCharacter's relationhip or thoughts on them:
+                    `An event occurs that reflects the Mansion's low ${Object.values(StationStat).find(stat => (stage.getSave().stationStats?.[stat] || 3) <= 3) || 'Morale'} stat, but also offers an opportunity to raise it.` :  ''),
+                // If there is another slave in the Mansion maybe focus on centralCharacter's relationhip or thoughts on them:
                 (centralCharacter && Object.values(stage.getSave().actors).filter(actor => actor.origin === 'patient').length > 1 ?
                     `Explore ${centralCharacter.name}'s thoughts or feelings about other slaves in the mansion, such as ${Object.values(stage.getSave().actors).filter(actor => actor.origin === 'slave' && actor.id !== centralCharacter.id).map(actor => actor.name)[0]}.` : null), 
                 // Generic suggestion:
@@ -118,11 +118,11 @@ export function generateSkitTypePrompt(skit: SkitData, stage: Stage, continuing:
                 `Continue this scene with ${actor.name}, potentially exploring their thoughts or feelings toward their new role.`;
         case SkitType.NEW_MODULE:
             return !continuing ?
-                `This scene depicts an exchange between the player and some of the patients regarding the opening of a new module, the ${module?.getAttribute('name') || 'unknown'}. ` :
-                `Continue this scene, exploring the crew's thoughts or feelings toward this latest addition to the PARC.`;
+                `This scene depicts an exchange between the player and some of the slaves regarding the opening of a new module, the ${module?.getAttribute('name') || 'unknown'}. ` :
+                `Continue this scene, exploring the slave's thoughts or feelings toward this latest addition to the PARC.`;
         case SkitType.FACTION_INTRODUCTION:
             return (!continuing ?
-                `This scene introduces a new faction that would like to do business with the Director and PARC: ${faction?.name || 'a secret organization'}. ` +
+                `This scene introduces a new faction that would like to do business with the Master and Mansion: ${faction?.name || 'a secret organization'}. ` +
                 notHereText +
                 `Describe this new faction's appearance, motivations, and initial interactions with the player Master and other characters present in the Comms module (if any). ` :
                 `This is an introductory scene for ${faction?.name || 'a secret organization'}. ` +
@@ -632,7 +632,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                 `\n\nPrimary Instruction:\n` +
                 `  ${skit.script.length == 0 ? 'Produce the initial moments of a scene (perhaps joined in medias res)' : 'Extend or conclude the current scene script'} with three to five entries, ` +
                 `based upon the Premise and the specified Scene Prompt. Primarily involve the Present Characters, although Absent Characters may be moved to this location using appropriate tags, if warranted. ` +
-                `The script should tacitly consider characters' stats, relationships, past events, and the station's stats—among other factors—to craft a compelling scene. ` +
+                `The script should tacitly consider characters' stats, relationships, past events, and the mansion's stats—among other factors—to craft a compelling scene. ` +
                 `\n\n  Follow the structure of the strict Example Script formatting above: ` +
                 `actions are depicted in prose and character dialogue in quotation marks. Characters present their own actions and dialogue, while other events within the scene are attributed to NARRATOR. ` +
                 `Although a loose script format is employed, the actual content should be professionally edited narrative prose. ` +
@@ -979,7 +979,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                             `Reputation is a value between 1 and 10, representing the faction's opinion of the Mansion, and changes are incremental. If the faction is cutting ties with the Mansion, provide a large negative value. ` +
                             `Multiple faction tags can be provided in the output if, for instance, improving in the esteem of one faction inherently reduces the opinion of a rival.` +
                             `Full Examples:\n` +
-                            `[FACTION: Stellar Concord +1]\n` +
+                            `[FACTION: Crimson Warlocks +1]\n` +
                             `[FACTION: Shadow Syndicate -2]\n` +
 
                             `\n#Character Faction Change:#\n` +
