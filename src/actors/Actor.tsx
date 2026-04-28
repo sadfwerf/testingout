@@ -331,25 +331,12 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
     // Attempt to substitute words to avert bad content into something more agreeable (if the distillation still has these, then drop the card).
     const bannedWordSubstitutes: {[key: string]: string} = {
         // Try to age up some terms in the hopes that the character can be salvaged.
-        'underage': 'young adult',
-        'adolescent': 'young adult',
-        'youngster': 'young adult',
-        'teen': 'young adult',
-        'highschooler': 'young adult',
-        'childhood': 'formative years',
-        'childish': 'bratty',
         'child': 'young adult',
         // Don't bother with these; just set it to the same word so it gets discarded.
         'toddler': 'toddler',
         'infant': 'infant',
         // Assume that these words are being used in an innocuous way, unless they come back in the distillation.
-        'kid': 'joke',
-        'baby': 'honey',
-        'minor': 'trivial',
-        'old-school': 'retro',
-        'high school': 'college',
-        'school': 'college'};
-
+        'kid': 'joke',};
 
     // Preserve content while removing JSON-like structures.
     data.name = data.name.replace(/{/g, '(').replace(/}/g, ')');
@@ -394,22 +381,22 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
     // Take this data and use text generation to get an updated distillation of this character, including a physical description.
     const generatedResponse = await stage.generator.textGen({
         prompt: `{{messages}}This is preparatory request for structured and formatted game content.` +
-            `\n\nBackground: This game is a futuristic multiverse setting that pulls characters from across eras and timelines and settings. ` +
-            `The player of this game, ${stage.getSave().player.name}, manages a space station called the Post-Apocalypse Rehabilitation Center, or PARC, which resurrects victims of a multiversal calamity and helps them adapt to a new life, ` +
-            `with the goal of placing these characters into a new role in this universe. These new roles are offered by external factions, generally in exchange for a finder's fee or reputation boost. ` +
+            `\n\nBackground: This game is a medieval fantasy multiverse setting that pulls characters from across eras and timelines and settings. ` +
+            `The player of this game, ${stage.getSave().player.name}, manages a villa called the Mansion, which captures people from different worlds and enslaves them to do the bidding of the Master, ` +
+            `with the goal of placing these characters into a new role in this world. These new roles are offered by external factions, generally in exchange for a finder's fee or reputation boost. ` +
             `Some roles are above board, while others may involve morally ambiguous or covert activities; some may even be illicit or compulsary. ` +
             `The player's motives and ethics are open-ended; they may be benevolent or self-serving, and the characters they interact with may respond accordingly. ` +
             `\n\nNarrative Tone:\n${stage.getSave().tone || stage.TONE_MAP['Original']}` +
             `\n\nThe Original Details below describe a character or scenario (${data.name}) from another universe. This request and response must digest and distill these details to suit the game's narrative scenario, ` +
-            `crafting a character who has been rematerialized into this universe through an "echo chamber," their essence reconstituted from the whispers of a black hole. ` +
-            `As a result of this process, many of this character's traits may have changed, including the loss of most supernatural or arcane abilities, which functioned only within the rules of their former universe. ` +
+            `crafting a character who has been rematerialized into this world through an "echo chamber," their essence from a portal to another dimension. ` +
+            `As a result of this process, some of this character's traits may have changed. ` +
             `Their new description and profile should reflect these possible changes and their impact.\n\n` +
             `The provided Original Details reference 'Individual X' who no longer exists in this timeline; ` +
             `if Individual X remains relevant to this character, Individual X should be replaced with an appropriate name in the distillation.\n\n` +
             `In addition to the simple display name, physical description, and personality profile, ` +
             `score the character on a scale of 1-10 for the following traits: BRAWN, SKILL, NERVE, WITS, CHARM, LUST, JOY, and TRUST.\n` +
             `Bear in mind the character's current, diminished state—as a newly reconstituted and relatively powerless individual—and not their original potential when scoring these traits (but omit your reasons from the response structure); ` +
-            `some characters may not respond well to being essentially resurrected into a new timeline, losing much of what they once had. Others may be grateful for a new beginning.\n\n` +
+            `some characters may not respond well to being essentially enslaved, losing much of what they once had. Others may be grateful for a new beginning.\n\n` +
             `Original Details about ${data.name}:\n ${data.personality}\n\n` +
             `Available Voices:\n` +
             Object.entries(VOICE_MAP).map(([voiceId, voiceDesc]) => '  - ' + voiceId + ': ' + voiceDesc).join('\n') +
@@ -445,7 +432,7 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
             `TRUST: 2\n` +
             `#END#` +
             (stage.getSave().attenuation ? 
-                `\n\nThe station is currently tuned to modify this character; take the following additional context into account while forming this distillation:\n${stage.getSave().attenuation}` : 
+                `\n\nThe mansion is currently tuned to modify this character; take the following additional context into account while forming this distillation:\n${stage.getSave().attenuation}` : 
                 ''),
         stop: ['#END'],
         include_history: true, // There won't be any history, but if this is true, the front-end doesn't automatically apply pre-/post-history prompts.
@@ -659,11 +646,11 @@ export async function generateActorDecor(actor: Actor, module: Module, stage: St
     // Bundle both the description generation and image generation into a single promise
     stage.imageGenerationPromises[`actor/decor/${actor.id}/${module.type}`] = (async () => {
         // Generate a decor prompt for this actor for this space, based on the module's description and the actor's style
-        const descriptionPrompt = `Generate an updated description of this sci-fi room aboard a space station: ${module.getAttribute('name')}.\n` +
+        const descriptionPrompt = `Generate an updated description of this medieval fantasy room in a mansion: ${module.getAttribute('name')}.\n` +
             `The current description is: ${module.getAttribute('description')}.\n` +
             `Output an updated description of this room, including additional details for furnishings and decorations to help the description match this aesthetic: ${actor.style}.\n` +
             `Example Response:\n` +
-            `The room is a sleek, modern space with clean lines and minimalist furnishings. The walls are adorned with abstract art pieces in bold colors, and the furniture is made of polished metal and glass. A large window offers a stunning view of the stars outside. The overall vibe is futuristic and sophisticated, with a touch of warmth added by soft lighting and plush textiles.\n#END#\n`;
+            `The room is a dark, dank stone cell with mossy growths and minimalist furnishings. The stone slabs in drab colors, and the furniture is made of crude metal. A barred window offers a cramped view of the forest outside. The overall vibe is harsh and medieval fantasy.\n#END#\n`;
         const decorDescriptionResponse = await stage.generator.textGen({
             prompt: descriptionPrompt,
             stop: ['#END'],
@@ -674,7 +661,7 @@ export async function generateActorDecor(actor: Actor, module: Module, stage: St
         // Generate a decor image based on the generated room description
         const decorImageUrl = await stage.makeImageFromImage({
             image: module.getAttribute('baseImageUrl') || '',
-            prompt: `Redecorate this sci-fi room aboard a space station to match this description: ${decorDescriptionResponse?.result || module.getAttribute('description')}.\n` +
+            prompt: `Redecorate this medieval fantasy room aboard a mansion to match this description: ${decorDescriptionResponse?.result || module.getAttribute('description')}.\n` +
                     `The scene remains unoccupied; remove any people from the result.`,
             remove_background: false,
             transfer_type: 'edit'
